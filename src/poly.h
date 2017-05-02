@@ -1,9 +1,9 @@
 /** @file
    Interfejs klasy wielomianów
 
-   @author Jakub Pawlewicz <pan@mimuw.edu.pl>, TODO
+   @author Jakub Pawlewicz <pan\@mimuw.edu.pl>, Wojciech Matusiak <wm382710\@students.mimuw.edu.pl>
    @copyright Uniwersytet Warszawski
-   @date 2017-04-09, TODO
+   @date 2017
 */
 
 #ifndef __POLY_H__
@@ -187,7 +187,6 @@ static inline Poly PolyZero() {
  * @return jednomian `p * x^e`
  */
 static inline Mono MonoFromPoly(Poly *p, poly_exp_t e) {
-    //TODO Kopiować, czy nie kopiować?
     Mono m;
     m.exp = e;
     m.p = *p;
@@ -210,7 +209,13 @@ static inline bool PolyIsCoeff(const Poly *p)
  * @return Czy wielomian jest równy zero?
  */
 static inline bool PolyIsZero(const Poly *p) {
-    return p->monos == NULL && p->asCoef == 0;
+    if (p->monos == NULL)
+        return p->asCoef == 0;
+    for (poly_exp_t i = 0; i < p->length; ++i) {
+        if (!PolyIsZero(&p->monos[i].p))
+            return false;
+    }
+    return true;
 }
 
 /**
