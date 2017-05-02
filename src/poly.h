@@ -60,7 +60,7 @@ typedef struct Mono
 void PolyDestroy(Poly *p);
 
 /**
- * Robi pełną kopię wielomianu.
+ * Robi pełną, głęboką kopię wielomianu.
  * @param[in] p : wielomian
  * @return skopiowany wielomian
  */
@@ -76,6 +76,7 @@ Poly PolyAdd(const Poly *p, const Poly *q);
 
 /**
  * Sumuje listę jednomianów i tworzy z nich wielomian.
+ * Przejmuje na własność zawartość tablicy @p monos.
  * @param[in] count : liczba jednomianów
  * @param[in] monos : tablica jednomianów
  * @return wielomian będący sumą jednomianów
@@ -147,11 +148,12 @@ bool PolyIsEq(const Poly *p, const Poly *q);
 Poly PolyAt(const Poly *p, poly_coeff_t x);
 
 /**
- * Robi pełną kopię jednomianu.
+ * Robi pełną, głęboką kopię jednomianu.
  * @param[in] m : jednomian
  * @return skopiowany jednomian
  */
-static inline Mono MonoClone(const Mono *m) {
+static inline Mono MonoClone(const Mono *m)
+{
     Mono clone;
     clone.exp = m->exp;
     clone.p = PolyClone(&m->p);
@@ -175,18 +177,20 @@ static inline Poly PolyFromCoeff(poly_coeff_t c)
  * Tworzy wielomian tożsamościowo równy zeru.
  * @return wielomian
  */
-static inline Poly PolyZero() {
+static inline Poly PolyZero()
+{
     return PolyFromCoeff(0);
 }
 
 /**
  * Tworzy jednomian `p * x^e`.
- * Tworzony jednomian przejmuje na własność (kopiuje) wielomian @p p.
+ * Przejmuje na własność zawartość struktury wskazywanej przez @p p.
  * @param[in] p : wielomian - współczynnik jednomianu
  * @param[in] e : wykładnik
  * @return jednomian `p * x^e`
  */
-static inline Mono MonoFromPoly(Poly *p, poly_exp_t e) {
+static inline Mono MonoFromPoly(Poly *p, poly_exp_t e)
+{
     Mono m;
     m.exp = e;
     m.p = *p;
@@ -208,7 +212,8 @@ static inline bool PolyIsCoeff(const Poly *p)
  * @param[in] p : wielomian
  * @return Czy wielomian jest równy zero?
  */
-static inline bool PolyIsZero(const Poly *p) {
+static inline bool PolyIsZero(const Poly *p)
+{
     if (p->monos == NULL)
         return p->asCoef == 0;
     for (poly_exp_t i = 0; i < p->length; ++i) {
@@ -222,7 +227,8 @@ static inline bool PolyIsZero(const Poly *p) {
  * Usuwa jednomian z pamięci.
  * @param[in] m : jednomian
  */
-static inline void MonoDestroy(Mono *m) {
+static inline void MonoDestroy(Mono *m)
+{
     PolyDestroy(&m->p);
 }
 
