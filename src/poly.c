@@ -340,3 +340,28 @@ Poly PolyClone(const Poly *p)
     }
     return result;
 }
+
+Poly PolyNeg(const Poly *p)
+{
+    Poly result;
+    if (PolyIsCoeff(p)) {
+        result.monos = NULL;
+        result.asCoef = -p->asCoef;
+    } else {
+        result.monos = malloc(sizeof(Mono) * p->length);
+        result.length = p->length;
+        for (poly_exp_t i = 0; i < result.length; ++i) {
+            result.monos[i].exp = p->monos[i].exp;
+            result.monos[i].p = PolyNeg(&p->monos[i].p);
+        }
+    }
+    return result;
+}
+
+Poly PolySub(const Poly *p, const Poly *q)
+{
+    Poly q_neg = PolyNeg(q);
+    Poly result = PolyAdd(p, &q_neg);
+    PolyDestroy(&q_neg);
+    return result;
+}
