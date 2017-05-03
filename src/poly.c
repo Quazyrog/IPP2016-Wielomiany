@@ -322,7 +322,7 @@ Poly PolyAddMonos(unsigned count, const Mono *monos)
 {
     Mono *m_copy = malloc(sizeof(Mono) * count);
     memcpy(m_copy, monos, sizeof(Mono) * count);
-    ///FIXME skoro przejmuje na własność to hyba nie może być const? Powinienem jeszcze pamięć zwolnić?
+    ///FIXME skoro przejmuje na własność to chyba nie może być const? Powinienem jeszcze pamięć zwolnić?
     return PolyFromMonos(m_copy, count);
 }
 
@@ -335,7 +335,7 @@ Poly PolyClone(const Poly *p)
     } else {
         result.length = p->length;
         result.monos = malloc(sizeof(Mono) * result.length);
-        for (int i = 0; i < result.length; ++i)
+        for (poly_exp_t i = 0; i < result.length; ++i)
             result.monos[i] = MonoClone(&p->monos[i]);
     }
     return result;
