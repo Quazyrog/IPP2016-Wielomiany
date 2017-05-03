@@ -434,3 +434,19 @@ bool PolyIsEq(const Poly *p, const Poly *q)
 
     return true;
 }
+
+Poly PolyAt(const Poly *p, poly_coeff_t x)
+{
+    Poly result = PolyZero();
+
+    for (poly_exp_t i = 0; i < p->length; ++i) {
+        Poly old_result = result;
+        Poly power = PolyFromCoeff(QuickPower(x, p->monos[i].exp));
+        result = PolyAdd(&old_result, &power);
+        PolyDestroy(&old_result);
+        PolyDestroy(&power);
+    }
+
+    return result;
+}
+
