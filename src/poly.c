@@ -365,3 +365,72 @@ Poly PolySub(const Poly *p, const Poly *q)
     PolyDestroy(&q_neg);
     return result;
 }
+
+poly_exp_t PolyDegBy(const Poly *p, unsigned var_idx)
+{
+    if (p->monos == NULL)
+        return -1;
+    if (var_idx == 0)
+        return p->monos[p->length - 1].exp;
+
+    poly_exp_t max = -1;
+    for (poly_exp_t i = 0; i < p->length; ++i) {
+        if (PolyIsZero(&p->monos[i].p))
+            continue;
+        poly_exp_t ith_deg = PolyDegBy(&p->monos[i].p, var_idx - 1);
+        max = max > ith_deg ? max : ith_deg;
+    }
+
+    return max;
+}
+
+poly_exp_t PolyDeg(const Poly *p)
+{
+    if (p->monos == NULL)
+        return -1;
+
+    poly_exp_t max = -1;
+    for (poly_exp_t i = 0; i < p->length; ++i) {
+        if (PolyIsZero(&p->monos[i].p))
+            continue;
+        poly_exp_t ith_deg = PolyDeg(&p->monos[i].p) + p->monos[i].exp;
+        max = max > ith_deg ? max : ith_deg;
+    }
+
+    return max;
+}
+
+bool PolyIsEq(const Poly *p, const Poly *q)
+{
+    if ((p->monos == NULL && q->monos != NULL) || (p->monos != NULL && q->monos == NULL))
+        return false;
+    if (p->monos == NULL)
+        return p->asCoef == q->asCoef;
+
+    poly_exp_t i = 0, j = 0;
+    while (i < p->length && j < q->length) {
+        if (p->monos[i].exp < q->monos[j].exp) {
+            if (!PolyIsZero(&p->monos[i].p))
+                return false;
+            ++i;
+        } else if (p->monos[i].exp > q->monos[j].exp) {
+            if (!PolyIsZero(&p->monos[j].p))
+                return false;
+            ++j;
+        } else {
+            if (!PolyIsEq(&p->monos[i].p, &q->monos[j].p))
+                return false;
+        }
+    }
+
+    for (; i < p->length; ++i) {
+        if (!PolyIsZero(&p->monos[i].p))
+            return false;
+    }
+    for (; j < q->length; ++j) {
+        if (!PolyIsZero(&p->monos[j].p))
+            return false;
+    }
+
+    return true;
+}
