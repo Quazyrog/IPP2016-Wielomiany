@@ -209,7 +209,7 @@ static void PolyMergeSortedMonos(Mono *in1, Mono *in2, Mono *out, int len1, int 
     }
 
     if (j1 < len1)
-        memcpy(out + i, in1 + j1, (size_t)(len1 - j1));
+        memcpy(out + i, in1 + j1, (len1 - j1) * sizeof(Mono));
     //Zgodnie z założeniami, jeśli in2 się nie skończyło, to i tak jest już na swoim miejscu
 }
 
@@ -241,9 +241,9 @@ static void PolySortMonos(Mono *monos, poly_exp_t length)
  * Tworzy wielomian zbudowany z sumy jednomianów podanych w tablicy.
  * Wielomian przejmuje na własność tablicę jednomianów i staje się ona jego wewnętrzną tablicą. W związku z tym, tablica
  * nowego wielomianu będzie za duża, kiedy w wejściowej tablicy <c>monos</c> będą jednomiany o takim samym wykładniku.
- * Te nadmiarowe jednomiany będą znajdować się na końcu tablicy, ich wykładnik zostanie ustawiony na -1. Pole
- * <c>length</c> struktury wielomianu będzie zawierało liczbę tylko prawidłowych jednomianów w tablicy, więc może być
- * mniejsza niż wejściowa długość tablicy jednomianów.
+ * Te nadmiarowe jednomiany będą znajdować się na końcu tablicy. Pole <c>length</c> struktury wielomianu będzie
+ * zawierało liczbę tylko prawidłowych jednomianów w tablicy, więc może być mniejsza niż wejściowa długość tablicy
+ * jednomianów.
  * @param monos tablica jednomianów (przejmowana na własność)
  * @param length długosć tablicy <c>monos</c>
  * @return
@@ -262,13 +262,12 @@ static Poly PolyFromMonos(Mono *monos, poly_exp_t length)
         } else {
             ++i;
             monos[i] = monos[j];
-            monos[j].exp = -1;
         }
     }
 
     Poly p;
     p.monos = monos;
-    p.length = i;
+    p.length = i + 1;
     return p;
 }
 
