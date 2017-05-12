@@ -137,6 +137,8 @@ void TestPolyAdd(void)
     PolyDestroy(&poly_add_pc_c);
     PolyDestroy(&poly_add_pc_p);
     PolyDestroy(&sum);
+    PolyDestroy(&summed_poly);
+    PolyDestroy(&times2);
 }
 
 //Sprawdza, czy wielomian jest równy Ax^2 +2Ax + A
@@ -186,6 +188,7 @@ void TestPolyMultiply(void)
     };
     Mono monos22 = (Mono){.p = PolyAddMonos(2, monos221), .exp = 0};
     Poly poly22 = PolyAddMonos(1, &monos22);
+    MonoDestroy(&monos22);
     Poly poly2 = PolyMul(&poly21, &poly22);
     assert(poly2.length == 2);
     assert(poly2.monos[0].exp == 0);
@@ -251,9 +254,84 @@ void TestPolyMultiply(void)
     PolyDestroy(&poly5);
 }
 
+void TestEqualAndNeg(void)
+{
+    Mono some_monos[] = {
+        (Mono){.p = PolyFromCoeff(1), .exp = 0},
+        (Mono){.p = PolyFromCoeff(3), .exp = 1},
+        (Mono){.p = PolyFromCoeff(3), .exp = 2},
+        (Mono){.p = PolyFromCoeff(1), .exp = 3},
+    };
+    Poly some_poly = PolyAddMonos(4, some_monos);
+    Mono some_monos_neg[] = {
+        (Mono){.p = PolyFromCoeff(-1), .exp = 0},
+        (Mono){.p = PolyFromCoeff(-3), .exp = 1},
+        (Mono){.p = PolyFromCoeff(-3), .exp = 2},
+        (Mono){.p = PolyFromCoeff(-1), .exp = 3},
+    };
+    Poly some_poly_neg = PolyAddMonos(4, some_monos_neg);
+    Poly zero = PolyZero();
+
+    Poly poly0 = PolyAdd(&some_poly, &some_poly_neg);
+    assert(PolyIsZero(&poly0));
+    assert(PolyIsEq(&zero, &poly0));
+    PolyDestroy(&some_poly);
+    PolyDestroy(&some_poly_neg);
+    PolyDestroy(&poly0);
+
+    //(x + y)^2 + (x - y)^2
+    Mono m = (Mono){.p = PolyFromCoeff(1), 1};
+    Poly poly_x = PolyAddMonos(1, &m);
+    Poly poly_y_pre = PolyAddMonos(1, &m);
+    Mono mono_y = MonoFromPoly(&poly_y_pre, 0);
+    Poly poly_y = PolyAddMonos(1, &mono_y);
+    MonoDestroy(&mono_y);
+    Poly x_plus_y = PolyAdd(&poly_x, &poly_y);
+    Poly x_subt_y = PolySub(&poly_x, &poly_y);
+    assert(x_plus_y.length == 2);
+    assert(x_plus_y.monos[0].p.length == 1);
+    assert(x_plus_y.monos[0].p.monos[0].exp == 1);
+    assert(x_plus_y.monos[0].p.monos[0].p.asCoef == 1);
+    assert(x_plus_y.monos[1].exp == 1);
+    assert(x_plus_y.monos[1].p.asCoef == 1);
+
+    Poly sum_pow2 = PolyMul(&x_plus_y, &x_plus_y);
+    Poly dif_pow2 = PolyMul(&x_subt_y, &x_subt_y);
+    Poly sumA = PolyAdd(&sum_pow2, &dif_pow2);
+    assert(sumA.monos[0].p.monos[0].p.asCoef == 2);
+    assert(sumA.monos[0].p.monos[0].exp == 2);
+    assert(sumA.monos[1].p.asCoef == 0);
+    assert(sumA.monos[2].p.asCoef == 2);
+    assert(sumA.monos[2].exp == 2);
+
+    Poly sqrx = PolyMul(&poly_x, &poly_x);
+    Poly sqry = PolyMul(&poly_y, &poly_y);
+    Poly sqr_sum = PolyAdd(&sqrx, &sqry);
+    Poly sqr_sum_dbl = PolyAdd(&sqr_sum, &sqr_sum);
+    assert(sqr_sum_dbl.monos[0].p.monos[0].p.asCoef == 2);
+    assert(sqr_sum_dbl.monos[0].p.monos[0].exp == 2);
+    assert(sqr_sum_dbl.monos[1].p.asCoef == 2);
+    assert(sqr_sum_dbl.monos[1].exp == 2);
+
+    assert(PolyIsEq(&sqr_sum_dbl, &sumA));
+
+    PolyDestroy(&poly_x);
+    PolyDestroy(&poly_y);
+    PolyDestroy(&x_plus_y);
+    PolyDestroy(&sum_pow2);
+    PolyDestroy(&dif_pow2);
+    PolyDestroy(&sumA);
+    PolyDestroy(&sqrx);
+    PolyDestroy(&sqry);
+    PolyDestroy(&sqr_sum);
+    PolyDestroy(&sqr_sum_dbl);
+    PolyDestroy(&x_subt_y);
+}
+
 int main()
 {
     TestPolynomialBuilding();
     TestPolyAdd();
     TestPolyMultiply();
+    TestEqualAndNeg();
 }

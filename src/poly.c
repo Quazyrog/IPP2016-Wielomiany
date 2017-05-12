@@ -365,7 +365,8 @@ Poly PolyMul(const Poly *p, const Poly *q)
 Poly PolyAddMonos(unsigned count, const Mono *monos)
 {
     Mono *m_copy = malloc(sizeof(Mono) * count);
-    memcpy(m_copy, monos, sizeof(Mono) * count);
+    for (poly_exp_t i = 0; i < (poly_exp_t )count; ++i)
+        m_copy[i] = MonoClone(monos + i);
     ///FIXME skoro przejmuje na własność to chyba nie może być const? Powinienem jeszcze pamięć zwolnić?
     return PolyFromMonos(m_copy, count);
 }
@@ -446,7 +447,7 @@ poly_exp_t PolyDeg(const Poly *p)
 
 bool PolyIsEq(const Poly *p, const Poly *q)
 {
-    if ((p->monos == NULL && q->monos != NULL) || (p->monos != NULL && q->monos == NULL))
+    if (PolyIsCoeff(p) != PolyIsCoeff(q))
         return false;
     if (p->monos == NULL)
         return p->asCoef == q->asCoef;
@@ -458,12 +459,13 @@ bool PolyIsEq(const Poly *p, const Poly *q)
                 return false;
             ++i;
         } else if (p->monos[i].exp > q->monos[j].exp) {
-            if (!PolyIsZero(&p->monos[j].p))
+            if (!PolyIsZero(&q->monos[j].p))
                 return false;
             ++j;
         } else {
             if (!PolyIsEq(&p->monos[i].p, &q->monos[j].p))
                 return false;
+            ++i, ++j;
         }
     }
 
