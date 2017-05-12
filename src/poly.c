@@ -474,10 +474,13 @@ Poly PolyAt(const Poly *p, poly_coeff_t x)
 
     for (poly_exp_t i = 0; i < p->length; ++i) {
         Poly old_result = result;
-        Poly power = PolyFromCoeff(QuickPower(x, p->monos[i].exp));
-        result = PolyAdd(&old_result, &power);
+        poly_coeff_t power = QuickPower(x, p->monos[i].exp);
+        Poly evaluated_mono = PolyClone(&p->monos[i].p);
+        PolyScale(&evaluated_mono, power);
+        result = PolyAdd(&old_result, &evaluated_mono);
+
         PolyDestroy(&old_result);
-        PolyDestroy(&power);
+        PolyDestroy(&evaluated_mono);
     }
 
     return result;

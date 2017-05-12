@@ -57,6 +57,30 @@ void TestPolynomialBuilding(void)
     assert(summed_poly3.monos[2].exp == 2);
     assert(summed_poly3.monos[3].p.asCoef == 1);
     PolyDestroy(&summed_poly3);
+
+    Mono y_part_mono = (Mono){.p = PolyFromCoeff(1), .exp = 1};
+    Poly y_part = PolyAddMonos(1, &y_part_mono);
+    Mono y_mono = MonoFromPoly(&y_part, 0);
+    Poly y = PolyAddMonos(1, &y_mono);
+    assert(y.length == 1);
+    assert(y.monos[0].exp == 0);
+    assert(y.monos[0].p.length == 1);
+    assert(y.monos[0].p.monos[0].exp == 1);
+    assert(y.monos[0].p.monos[0].p.monos == NULL);
+    assert(y.monos[0].p.monos[0].p.asCoef == 1);
+    Poly one = PolyFromCoeff(1);
+    Poly y_and_one = PolyAdd(&y, &one);
+    assert(y_and_one.length == 1);
+    assert(y_and_one.monos[0].exp == 0);
+    assert(y_and_one.monos[0].p.length == 2);
+    assert(y_and_one.monos[0].p.monos[0].exp == 0);
+    assert(y_and_one.monos[0].p.monos[0].p.monos == NULL);
+    assert(y_and_one.monos[0].p.monos[0].p.asCoef == 1);
+    assert(y_and_one.monos[0].p.monos[1].exp == 1);
+    assert(y_and_one.monos[0].p.monos[1].p.monos == NULL);
+    assert(y_and_one.monos[0].p.monos[1].p.asCoef == 1);
+    PolyDestroy(&y);
+    PolyDestroy(&y_and_one);
 }
 
 void TestPolyAdd(void)
@@ -254,6 +278,17 @@ void TestPolyMultiply(void)
     PolyDestroy(&poly5);
 }
 
+//,,Zwraca'' dwa wielomiany: x oraz y
+void BuildXY(Poly *x, Poly *y)
+{
+    Mono m = (Mono){.p = PolyFromCoeff(1), 1};
+    *x = PolyAddMonos(1, &m);
+    Poly poly_y_pre = PolyAddMonos(1, &m);
+    Mono mono_y = MonoFromPoly(&poly_y_pre, 0);
+    *y = PolyAddMonos(1, &mono_y);
+    MonoDestroy(&mono_y);
+}
+
 void TestEqualAndNeg(void)
 {
     Mono some_monos[] = {
@@ -280,12 +315,8 @@ void TestEqualAndNeg(void)
     PolyDestroy(&poly0);
 
     //(x + y)^2 + (x - y)^2
-    Mono m = (Mono){.p = PolyFromCoeff(1), 1};
-    Poly poly_x = PolyAddMonos(1, &m);
-    Poly poly_y_pre = PolyAddMonos(1, &m);
-    Mono mono_y = MonoFromPoly(&poly_y_pre, 0);
-    Poly poly_y = PolyAddMonos(1, &mono_y);
-    MonoDestroy(&mono_y);
+    Poly poly_x, poly_y;
+    BuildXY(&poly_x, &poly_y);
     Poly x_plus_y = PolyAdd(&poly_x, &poly_y);
     Poly x_subt_y = PolySub(&poly_x, &poly_y);
     assert(x_plus_y.length == 2);
@@ -330,12 +361,8 @@ void TestEqualAndNeg(void)
 
 void TestDegree(void)
 {
-    Mono m = (Mono){.p = PolyFromCoeff(1), 1};
-    Poly poly_x = PolyAddMonos(1, &m);
-    Poly poly_y_pre = PolyAddMonos(1, &m);
-    Mono mono_y = MonoFromPoly(&poly_y_pre, 0);
-    Poly poly_y = PolyAddMonos(1, &mono_y);
-    MonoDestroy(&mono_y);
+    Poly poly_x, poly_y;
+    BuildXY(&poly_x, &poly_y);
     Poly x_plus_y = PolyAdd(&poly_x, &poly_y);
     Poly x_subt_y = PolySub(&poly_x, &poly_y);
     Poly sum_pow2 = PolyMul(&x_plus_y, &x_plus_y);
@@ -361,6 +388,61 @@ void TestDegree(void)
     PolyDestroy(&times);
 }
 
+//Dla zadanego wielomianu p i liczb a_i zwraca wielomian (p + x_0) * ... * (p + x_n)
+Poly MultiplyShifted(Poly *p, unsigned int count, poly_coeff_t *roots)
+{
+    assert(count > 0);
+    Poly coef = PolyFromCoeff(roots[0]);
+    Poly fold = PolyAdd(p, &coef);
+
+    for (unsigned int i = 1; i < count; ++i) {
+        coef = PolyFromCoeff(roots[i]);
+        Poly next = PolyAdd(p, &coef);
+
+        Poly old_fold = fold;
+        fold = PolyMul(&old_fold, &next);
+        PolyDestroy(&next);
+        PolyDestroy(&old_fold);
+    }
+
+    return fold;
+}
+
+void PolyTestEvaluation(void)
+{
+    Poly x, y;
+    BuildXY(&x, &y);
+
+    poly_coeff_t x_part_roots[] = {-1, -1, 0, 0, 2, 2, 5, 5};
+    Poly x_part = MultiplyShifted(&x, 8, x_part_roots);
+    poly_coeff_t y_part_roots[] = {-3, -1, 0, 4, 8};
+    Poly y_part = MultiplyShifted(&y, 5, y_part_roots);
+    Poly full = PolyMul(&x_part, &y_part);
+
+    assert(PolyAt(&x_part, 1).monos == NULL);
+    assert(PolyAt(&x_part, 1).asCoef == 0);
+    assert(PolyAt(&x_part, -5).monos == NULL);
+    assert(PolyAt(&x_part, -5).asCoef == 0);
+    assert(PolyAt(&full, 0).monos == NULL);
+    assert(PolyAt(&full, 0).asCoef == 0);
+    Poly full_at_10 = PolyAt(&full, 10);
+    assert(PolyAt(&full_at_10, -8).monos == NULL);
+    assert(PolyAt(&full_at_10, -8).asCoef == 0);
+
+    assert(PolyAt(&x_part, 2).monos == NULL);
+    assert(PolyAt(&x_part, 2).asCoef == 56 * 56);
+    Poly yp56_a = PolyAt(&full, 1);
+    Poly yp56_b = PolyAt(&full, -2);
+    assert(PolyIsEq(&yp56_a, &yp56_b));
+
+    PolyDestroy(&x);
+    PolyDestroy(&y);
+    PolyDestroy(&x_part);
+    PolyDestroy(&y_part);
+    PolyDestroy(&full);
+    PolyDestroy(&full_at_10);
+}
+
 int main()
 {
     TestPolynomialBuilding();
@@ -368,4 +450,5 @@ int main()
     TestPolyMultiply();
     TestEqualAndNeg();
     TestDegree();
+    PolyTestEvaluation();
 }
