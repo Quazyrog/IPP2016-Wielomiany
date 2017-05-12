@@ -393,28 +393,35 @@ Poly PolySub(const Poly *p, const Poly *q)
 
 poly_exp_t PolyDegBy(const Poly *p, unsigned var_idx)
 {
-    if (p->monos == NULL)
+    if (PolyIsZero(p))
         return -1;
-    if (var_idx == 0)
-        return p->monos[p->length - 1].exp;
+    if (PolyIsCoeff(p))
+        return 0;
 
-    poly_exp_t max = -1;
+    if (var_idx == 0) {
+        for (poly_exp_t i = p->length - 1; i >= 0; --i) {
+            if (!PolyIsZero(&p->monos[i].p))
+                return p->monos[i].exp;
+        }
+        assert(false);
+    }
+
+    poly_exp_t max = 0;
     for (poly_exp_t i = 0; i < p->length; ++i) {
-        if (PolyIsZero(&p->monos[i].p))
-            continue;
         poly_exp_t ith_deg = PolyDegBy(&p->monos[i].p, var_idx - 1);
         max = max > ith_deg ? max : ith_deg;
     }
-
     return max;
 }
 
 poly_exp_t PolyDeg(const Poly *p)
 {
-    if (p->monos == NULL)
+    if (PolyIsZero(p))
         return -1;
+    if (PolyIsCoeff(p))
+        return 0;
 
-    poly_exp_t max = -1;
+    poly_exp_t max = 0;
     for (poly_exp_t i = 0; i < p->length; ++i) {
         if (PolyIsZero(&p->monos[i].p))
             continue;

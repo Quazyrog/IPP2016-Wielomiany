@@ -328,10 +328,44 @@ void TestEqualAndNeg(void)
     PolyDestroy(&x_subt_y);
 }
 
+void TestDegree(void)
+{
+    Mono m = (Mono){.p = PolyFromCoeff(1), 1};
+    Poly poly_x = PolyAddMonos(1, &m);
+    Poly poly_y_pre = PolyAddMonos(1, &m);
+    Mono mono_y = MonoFromPoly(&poly_y_pre, 0);
+    Poly poly_y = PolyAddMonos(1, &mono_y);
+    MonoDestroy(&mono_y);
+    Poly x_plus_y = PolyAdd(&poly_x, &poly_y);
+    Poly x_subt_y = PolySub(&poly_x, &poly_y);
+    Poly sum_pow2 = PolyMul(&x_plus_y, &x_plus_y);
+    Poly dif_pow2 = PolyMul(&x_subt_y, &x_subt_y);
+    Poly times = PolySub(&sum_pow2, &dif_pow2);
+
+    assert(PolyDeg(&x_plus_y) == 1);
+    assert(PolyDegBy(&x_plus_y, 0) == 1);
+    assert(PolyDegBy(&x_plus_y, 1) == 1);
+    assert(PolyDeg(&x_subt_y) == 1);
+    assert(PolyDeg(&sum_pow2) == 2);
+    assert(PolyDegBy(&sum_pow2, 0) == 2);
+    assert(PolyDegBy(&sum_pow2, 1) == 2);
+    assert(PolyDegBy(&times, 0) == 1);
+    assert(PolyDegBy(&times, 1) == 1);
+    assert(PolyDeg(&times) == 2);
+
+    PolyDestroy(&poly_x);
+    PolyDestroy(&poly_y);
+    PolyDestroy(&x_plus_y);
+    PolyDestroy(&sum_pow2);
+    PolyDestroy(&dif_pow2);
+    PolyDestroy(&times);
+}
+
 int main()
 {
     TestPolynomialBuilding();
     TestPolyAdd();
     TestPolyMultiply();
     TestEqualAndNeg();
+    TestDegree();
 }
