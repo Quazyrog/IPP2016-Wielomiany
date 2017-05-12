@@ -158,26 +158,6 @@ static inline poly_coeff_t QuickPower(poly_coeff_t base, poly_exp_t exponent)
 }
 
 /**
- * Mnoży wielomian przez \f$ x^n \f$.
- * Mnoży/przesówa wielomian o zadany wykładnik: dodaje <c>shift</c> do wysztskich jego wykładników. Jeżeli <c>p</c> jest
- * współczynnikiem, to zostanie przekształcony w wielomian o jednym monomianie.
- * @param p wielomian, który zostanie przesunięty
- * @param shift przesunięcie
- */
-static void PolyShift(Poly *p, poly_exp_t shift)
-{
-    if (p->monos == NULL) {
-        p->monos = malloc(sizeof(Mono));
-        p->monos[0].p = PolyFromCoeff(p->asCoef);
-        p->monos->exp = shift;
-        p->length = 1;
-    } else {
-        for (poly_exp_t i = 0; i < p->length; ++i)
-            p->monos[i].exp += shift;
-    }
-}
-
-/**
  * Mnoży wielomian przez skalar.
  * @param p wielomian, który ma zostać pomnożony
  * @param scalar skalar
