@@ -121,10 +121,44 @@ void TestPolyAdd(void)
     PolyDestroy(&delirium);
     PolyDestroy(&just_too_complex_to_name_it);
     PolyDestroy(&p1x);
+
+    //Przetestuj dodawanie wielomianu do współczynnika, bo nie działało
+    //x + 1   &   1
+    Mono monos1[] = {
+        (Mono){.p = PolyFromCoeff(1), .exp = 1},
+        (Mono){.p = PolyFromCoeff(1), .exp = 0},
+    };
+    Poly poly_add_pc_p = PolyAddMonos(2, monos1);
+    Poly poly_add_pc_c = PolyFromCoeff(1);
+    Poly sum = PolyAdd(&poly_add_pc_c, &poly_add_pc_p);
+    assert(sum.length == 2);
+    assert(sum.monos[0].p.asCoef == 2);  assert(sum.monos[0].exp == 0);
+    assert(sum.monos[1].p.asCoef == 1);  assert(sum.monos[1].exp == 1);
+}
+
+void TestPolyMultiply(void)
+{
+    //x + 1
+    Mono monos1[] = {
+        (Mono){.p = PolyFromCoeff(1), .exp = 1},
+        (Mono){.p = PolyFromCoeff(1), .exp = 0},
+    };
+    Poly poly1p1 = PolyAddMonos(2, monos1);
+    Poly poly1p2 = PolyMul(&poly1p1, &poly1p1);
+    Poly poly1p3 = PolyMul(&poly1p2, &poly1p1);
+    Poly poly1p5 = PolyMul(&poly1p3, &poly1p2);
+    assert(poly1p5.length == 6);
+    assert(poly1p5.monos[0].p.asCoef == 1);   assert(poly1p5.monos[0].exp == 0);
+    assert(poly1p5.monos[1].p.asCoef == 5);   assert(poly1p5.monos[1].exp == 1);
+    assert(poly1p5.monos[2].p.asCoef == 10);  assert(poly1p5.monos[2].exp == 2);
+    assert(poly1p5.monos[3].p.asCoef == 10);  assert(poly1p5.monos[3].exp == 3);
+    assert(poly1p5.monos[4].p.asCoef == 5);   assert(poly1p5.monos[4].exp == 4);
+    assert(poly1p5.monos[5].p.asCoef == 1);   assert(poly1p5.monos[5].exp == 5);
 }
 
 int main()
 {
     TestPolynomialBuilding();
     TestPolyAdd();
+    TestPolyMultiply();
 }

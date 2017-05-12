@@ -42,22 +42,26 @@ static inline poly_exp_t CountSumLength(const Poly *p, const Poly *q)
  */
 static inline Poly PolyAddPC(const Poly *p, const Poly *q)
 {
-    assert(q->monos == NULL);
+    assert(q->monos == NULL && p->monos != NULL);
+    if (q->asCoef == 0)
+        return PolyClone(p);
+
     Poly result;
-
-    //[p] trzeba przekopiować do wyniku: jeśli [p] ma współczynnik x^0, to kopiujemy bez przesunięcia;
-    //jeśli nie, to z przesunięciem o 1, żeby dodac ten współczynnik
-    int start_i = (p->monos[0].exp == 0) ? 0 : 1;
-    result.monos = malloc(sizeof(Mono) * (p->length + start_i));
-
-    result.monos[0] = (Mono){.p = PolyFromCoeff(0), .exp = 0};
-    for (int i = 0; i < p->length; ++i)
-        result.monos[start_i] = MonoClone(p->monos + start_i + i);
-
-    Mono summed = {.p = PolyAdd(&result.monos[0].p, q), .exp = 0};
-    MonoDestroy(&result.monos[0]);
-    result.monos[0] = summed;
-
+    if (p->monos[0].exp == 0) {
+        //Trzeba zsumować
+        result.length = p->length;
+        result.monos = malloc(sizeof(Mono) * result.length);
+        result.monos[0] = (Mono){.p = PolyAdd(q, &p->monos[0].p), .exp = 0};
+        for (poly_exp_t i = 1; i < p->length; ++i)
+            result.monos[i] = MonoClone(p->monos + i);
+    } else {
+        //Nie sumujemy
+        result.length = p->length + 1;
+        result.monos = malloc(sizeof(Mono) * result.length);
+        result.monos[0] = (Mono){.p = PolyClone(q), .exp = 0};
+        for (poly_exp_t i = 0; i < p->length; ++i)
+            result.monos[1 + i] = MonoClone(p->monos + i);
+    }
     return result;
 }
 
