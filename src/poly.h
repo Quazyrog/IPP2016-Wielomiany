@@ -23,8 +23,7 @@ typedef int poly_exp_t;
  * Struktura przechowująca wielomian
  *
  * Biblioteka nie alokuje pamięci bezpośrednio na instancje jej struktury, tylko na jej dane w razie ptrzeby. W związku
- * z tym wszystkie funkcje usuwające ją z pamięci usuną jedynie jej dane (pomimo tego, że wymagają wskaźnika na tę
- * strukturę, co na pozór może się wydawać lekką niespójnością w interfejsie).
+ * z tym wszystkie funkcje usuwające ją z pamięci usuną jedynie jej dane.
  */
 typedef struct Poly
 {
@@ -216,11 +215,7 @@ static inline bool PolyIsZero(const Poly *p)
 {
     if (p->monos == NULL)
         return p->asCoef == 0;
-    for (poly_exp_t i = 0; i < p->length; ++i) {
-        if (!PolyIsZero(&p->monos[i].p))
-            return false;
-    }
-    return true;
+    return false;
 }
 
 /**

@@ -7,6 +7,26 @@
 #include "poly.h"
 
 /**
+ * Upraszcza wielomian, jeśli ten jest zerowy i zwraca ten wielomian (uproszczony wielomian, nie uproszczoną kopię).
+ * @param p wielomian do uproszczenia
+ * @return <code>p</code> po uptrzednim uproszczeniu
+ */
+static Poly PolySimplifyZero(Poly p)
+{
+    if (p.monos != NULL) {
+        bool zero = true;
+        for (poly_exp_t i = 0; i < p.length && zero; ++i)
+            zero &= PolyIsZero(&p.monos[i].p);
+        if (zero) {
+            free(p.monos);
+            p.monos = NULL;
+            p.asCoef = NULL;
+        }
+    }
+    return p;
+}
+
+/**
  * Oblicz liczbę jednomianów w \f$ p + q \f$
  * @param p pierwszy sumy wielomian
  * @param q drugi wielomian sumy wielomian
@@ -66,7 +86,7 @@ static inline Poly PolyAddPC(const Poly *p, const Poly *q)
 }
 
 /**
- * Oblicz \f$ p + q \f$ zakładając, że tylko żąden z nich nie jest współczynnikiem.
+ * Oblicz \f$ p + q \f$ zakładając, że żąden z nich nie jest współczynnikiem.
  * To jest podprzypadek dodawania wielomianów, kiedy żaden z nich nie jest wspołczynnikiem.
  * @param p wielomian niebędący współczynnikiem
  * @param q wielomian niebędący współczynnikiem
@@ -105,7 +125,7 @@ static inline Poly PolyAddPP(const Poly *p, const Poly *q)
     for (; q_index < q->length; ++q_index)
         result.monos[result_index++] = MonoClone(&q->monos[q_index]);
 
-    return result;
+    return PolySimplifyZero(result);
 }
 
 /**
@@ -164,7 +184,11 @@ static void PolyShift(Poly *p, poly_exp_t shift)
  */
 static void PolyScale(Poly *p, poly_coeff_t scalar)
 {
-    if (PolyIsCoeff(p)) {
+    if (scalar == 0) {
+        free(p->monos);
+        p->monos = NULL;
+        p->asCoef = 0;
+    } else if (PolyIsCoeff(p)) {
         p->asCoef *= scalar;
     } else {
         for (poly_exp_t i = 0; i < p->length; ++i)
@@ -181,6 +205,9 @@ static void PolyScale(Poly *p, poly_coeff_t scalar)
 static Poly PolyMulM(const Poly *p, const Mono *q)
 {
     assert(p->monos != NULL);
+    if (PolyIsZero(&q->p))
+        return PolyZero();
+
     Poly result;
     result.length = p->length;
     result.monos = malloc(sizeof(Mono) * result.length);
@@ -282,7 +309,7 @@ static Poly PolyFromMonos(Mono *monos, poly_exp_t length)
     Poly p;
     p.monos = monos;
     p.length = i + 1;
-    return p;
+    return PolySimplifyZero(p);
 }
 
 void PolyDestroy(Poly *p)
@@ -323,6 +350,8 @@ Poly PolyMul(const Poly *p, const Poly *q)
 
     Poly fold = PolyZero();
     for (poly_exp_t i = 0; i < q->length; ++i) {
+        if (PolyIsZero(&q->monos[i].p))
+            continue;
         Poly old_fold = fold;
         Poly next = PolyMulM(p, q->monos + i);
         fold = PolyAdd(&old_fold, &next);
@@ -330,7 +359,7 @@ Poly PolyMul(const Poly *p, const Poly *q)
         PolyDestroy(&next);
     }
 
-    return fold;
+    return PolySimplifyZero(fold);
 }
 
 Poly PolyAddMonos(unsigned count, const Mono *monos)
@@ -378,7 +407,7 @@ Poly PolySub(const Poly *p, const Poly *q)
     Poly q_neg = PolyNeg(q);
     Poly result = PolyAdd(p, &q_neg);
     PolyDestroy(&q_neg);
-    return result;
+    return PolySimplifyZero(result);
 }
 
 poly_exp_t PolyDegBy(const Poly *p, unsigned var_idx)
