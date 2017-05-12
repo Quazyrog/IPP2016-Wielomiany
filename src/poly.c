@@ -173,15 +173,25 @@ static void PolyScale(Poly *p, poly_coeff_t scalar)
 }
 
 /**
- * Zwraca wielomian pomnożony przez jednomian.
- * @param p wielomian
+ * Zwraca wielomian-nie-współczynnik pomnożony przez jednomian.
+ * @param p wielomian; nie może być współczynnikiem
  * @param q jednomian
  * @return \f$ q * q \f$
  */
 static Poly PolyMulM(const Poly *p, const Mono *q)
 {
-    Poly result = PolyMul(p, &q->p);
-    PolyShift(&result, q->exp);
+    assert(p->monos != NULL);
+    Poly result;
+    result.length = p->length;
+    result.monos = malloc(sizeof(Mono) * result.length);
+
+    //Trzeba ,,rozpakować'' wielomian p, bo inaczej zmniejszami indeksy zmiennych w q, a nie w p
+    //i dzieją się dziwne rzeczy
+    for (poly_exp_t i = 0; i < p->length; ++i) {
+        result.monos[i].exp = q->exp + p->monos[i].exp;
+        result.monos[i].p = PolyMul(&p->monos[i].p, &q->p);
+    }
+
     return result;
 }
 
@@ -302,13 +312,14 @@ Poly PolyAdd(const Poly *p, const Poly *q)
 
 Poly PolyMul(const Poly *p, const Poly *q)
 {
-    if (PolyIsCoeff(p))
-        PolyMul(q, p);
     if (PolyIsCoeff(q)) {
         Poly result = PolyClone(p);
         PolyScale(&result, q->asCoef);
         return result;
     }
+    //W innek kolenjości się zapętli
+    if (PolyIsCoeff(p))
+        return PolyMul(q, p); //Także nie należy zapominać, że C nie jest funkcyjny: trzeba pisać return...
 
     Poly fold = PolyZero();
     for (poly_exp_t i = 0; i < q->length; ++i) {

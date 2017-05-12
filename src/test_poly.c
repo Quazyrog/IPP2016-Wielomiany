@@ -136,6 +136,18 @@ void TestPolyAdd(void)
     assert(sum.monos[1].p.asCoef == 1);  assert(sum.monos[1].exp == 1);
 }
 
+//Sprawdza, czy wielomian jest równy Ax^2 +2Ax + A
+void TestPolyMultiplyAssertHelper1(Poly p, poly_coeff_t a)
+{
+    assert(p.length == 3);
+    assert(p.monos[0].exp == 0);
+    assert(p.monos[0].p.asCoef == a);
+    assert(p.monos[1].exp == 1);
+    assert(p.monos[1].p.asCoef == 2 * a);
+    assert(p.monos[2].exp == 2);
+    assert(p.monos[2].p.asCoef == a);
+}
+
 void TestPolyMultiply(void)
 {
     //x + 1
@@ -154,6 +166,81 @@ void TestPolyMultiply(void)
     assert(poly1p5.monos[3].p.asCoef == 10);  assert(poly1p5.monos[3].exp == 3);
     assert(poly1p5.monos[4].p.asCoef == 5);   assert(poly1p5.monos[4].exp == 4);
     assert(poly1p5.monos[5].p.asCoef == 1);   assert(poly1p5.monos[5].exp == 5);
+    PolyDestroy(&poly1p1);
+    PolyDestroy(&poly1p2);
+    PolyDestroy(&poly1p3);
+    PolyDestroy(&poly1p5);
+
+    //(y + 1)(x + 1) = (y + 1)x + (y + 1)
+    Mono monos21[] = {
+        (Mono){.p = PolyFromCoeff(1), .exp = 1},
+        (Mono){.p = PolyFromCoeff(1), .exp = 0},
+    };
+    Poly poly21 = PolyAddMonos(2, monos21);
+    Mono monos221[] = {
+        (Mono){.p = PolyFromCoeff(1), .exp = 1},
+        (Mono){.p = PolyFromCoeff(1), .exp = 0},
+    };
+    Mono monos22 = (Mono){.p = PolyAddMonos(2, monos221), .exp = 0};
+    Poly poly22 = PolyAddMonos(1, &monos22);
+    Poly poly2 = PolyMul(&poly21, &poly22);
+    assert(poly2.length == 2);
+    assert(poly2.monos[0].exp == 0);
+    assert(poly2.monos[0].p.length == 2);
+    assert(poly2.monos[0].p.monos[0].exp == 0);
+    assert(poly2.monos[0].p.monos[0].p.asCoef == 1);
+    assert(poly2.monos[0].p.monos[1].exp == 1);
+    assert(poly2.monos[0].p.monos[1].p.asCoef == 1);
+    assert(poly2.monos[1].exp == 1);
+    assert(poly2.monos[1].p.monos[0].exp == 0);
+    assert(poly2.monos[1].p.monos[0].p.asCoef == 1);
+    assert(poly2.monos[1].p.monos[1].exp == 1);
+    assert(poly2.monos[1].p.monos[1].p.asCoef == 1);
+    PolyDestroy(&poly21);
+    PolyDestroy(&poly22);
+
+    //((y + 1)x + (y + 1))^2 = (y^2 + 2y + 1)x^2 + (2y^2 + 4y + 2)x + (y^2 + 2y + 1)
+    Poly poly3 = PolyMul(&poly2, &poly2);
+    assert(poly3.length == 3);
+    assert(poly3.monos[0].exp == 0);
+    TestPolyMultiplyAssertHelper1(poly3.monos[0].p, 1);
+    assert(poly3.monos[1].exp == 1);
+    TestPolyMultiplyAssertHelper1(poly3.monos[1].p, 2);
+    assert(poly3.monos[2].exp == 2);
+    TestPolyMultiplyAssertHelper1(poly3.monos[2].p, 1);
+
+    //((y^2 + 2y + 1)x^2 + (2y^2 + 4y + 2)x + (y^2 + 2y + 1)) * (x + 1)
+    //= (y^2 + 2y + 1)x^3 + (3y^2 + 6y + 3)x^2 + (3y^2 + 6y + 3)x + (y^2 + 2y + 1)
+    Mono monos4[] = {
+        (Mono){.p = PolyFromCoeff(1), .exp = 1},
+        (Mono){.p = PolyFromCoeff(1), .exp = 0},
+    };
+    Poly poly4factor = PolyAddMonos(2, monos4);
+    Poly poly4 = PolyMul(&poly3, &poly4factor);
+    assert(poly4.length == 4);
+    assert(poly4.monos[0].exp == 0);
+    TestPolyMultiplyAssertHelper1(poly4.monos[0].p, 1);
+    assert(poly4.monos[1].exp == 1);
+    TestPolyMultiplyAssertHelper1(poly4.monos[1].p, 3);
+    assert(poly4.monos[2].exp == 2);
+    TestPolyMultiplyAssertHelper1(poly4.monos[2].p, 3);
+    assert(poly4.monos[3].exp == 3);
+    TestPolyMultiplyAssertHelper1(poly4.monos[3].p, 1);
+    PolyDestroy(&poly4factor);
+
+    //poly4 * 42
+    Poly poly5scalar = PolyFromCoeff(42);
+    Poly poly5 = PolyMul(&poly4, &poly5scalar);
+    assert(poly5.length == 4);
+    assert(poly5.monos[0].exp == 0);
+    TestPolyMultiplyAssertHelper1(poly5.monos[0].p, 1 * 42);
+    assert(poly5.monos[1].exp == 1);
+    TestPolyMultiplyAssertHelper1(poly5.monos[1].p, 3 * 42);
+    assert(poly5.monos[2].exp == 2);
+    TestPolyMultiplyAssertHelper1(poly5.monos[2].p, 3 * 42);
+    assert(poly5.monos[3].exp == 3);
+    TestPolyMultiplyAssertHelper1(poly5.monos[3].p, 1 * 42);
+    PolyDestroy(&poly5scalar);
 }
 
 int main()
