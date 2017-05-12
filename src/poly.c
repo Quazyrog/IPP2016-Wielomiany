@@ -327,6 +327,7 @@ Poly PolyMul(const Poly *p, const Poly *q)
         Poly next = PolyMulM(p, q->monos + i);
         fold = PolyAdd(&old_fold, &next);
         PolyDestroy(&old_fold);
+        PolyDestroy(&next);
     }
 
     return fold;

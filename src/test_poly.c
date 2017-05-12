@@ -134,6 +134,9 @@ void TestPolyAdd(void)
     assert(sum.length == 2);
     assert(sum.monos[0].p.asCoef == 2);  assert(sum.monos[0].exp == 0);
     assert(sum.monos[1].p.asCoef == 1);  assert(sum.monos[1].exp == 1);
+    PolyDestroy(&poly_add_pc_c);
+    PolyDestroy(&poly_add_pc_p);
+    PolyDestroy(&sum);
 }
 
 //Sprawdza, czy wielomian jest równy Ax^2 +2Ax + A
@@ -241,6 +244,11 @@ void TestPolyMultiply(void)
     assert(poly5.monos[3].exp == 3);
     TestPolyMultiplyAssertHelper1(poly5.monos[3].p, 1 * 42);
     PolyDestroy(&poly5scalar);
+
+    PolyDestroy(&poly2);
+    PolyDestroy(&poly3);
+    PolyDestroy(&poly4);
+    PolyDestroy(&poly5);
 }
 
 int main()
