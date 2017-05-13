@@ -24,6 +24,9 @@ set(SOURCE_FILES
     src/poly.c
     src/poly.h
     src/test_poly.c
+    src/test_poly_core.h
+    src/test_poly_core.c
+    src/test_poly.c
 )
 
 # Wskazujemy plik wykonywalny.
