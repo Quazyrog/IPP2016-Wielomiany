@@ -463,10 +463,35 @@ poly_exp_t PolyDeg(const Poly *p)
     return max;
 }
 
+/**
+ * Porównuje wielomian is współczynnik.
+ * Sprawdza czy wielomian <c>p</c>, który nie jest współczynnikiem, jest równy wielomianowi <c>q</c>,
+ * który jest współczynnikiem.
+ * @param p wielomian-nie-współczynnik
+ * @param q wielomian-współczynnik
+ * @return <c>true</c> gdy <c>p == q</c>, a <c>false</c> w przeciwnym wypadku
+ */
+static bool PolyIsEqPC(const Poly *p, const Poly *q)
+{
+    assert(p->monos != NULL);
+    assert(q->monos == NULL);
+    if (p->monos[0].exp != 0)
+        return false;
+    if (!PolyIsEq(&p->monos[0].p, q))
+        return false;
+    for (poly_exp_t i = 1; i < p->length; ++i) {
+        if (!PolyIsZero(&p->monos[i].p))
+            return false;
+    }
+    return true;
+}
+
 bool PolyIsEq(const Poly *p, const Poly *q)
 {
-    if (PolyIsCoeff(p) != PolyIsCoeff(q))
-        return false;
+    if (!PolyIsCoeff(p) && PolyIsCoeff(q))
+        return PolyIsEqPC(p, q);
+    if (PolyIsCoeff(p) && !PolyIsCoeff(q))
+        return PolyIsEqPC(q, p);
     if (p->monos == NULL)
         return p->asCoef == q->asCoef;
 
