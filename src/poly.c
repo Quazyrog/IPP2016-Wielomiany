@@ -374,7 +374,7 @@ Poly PolyAddMonos(unsigned count, const Mono *monos)
     return PolyFromMonos(m_copy, count);
 }
 
-Poly PolyAddCopyiedMonos(unsigned count, const Mono *monos)
+Poly PolyAddCopiedMonos(unsigned count, const Mono *monos)
 {
     Mono *m_copy = malloc(sizeof(Mono) * count);
     for (poly_exp_t i = 0; i < (poly_exp_t )count; ++i)

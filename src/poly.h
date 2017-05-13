@@ -89,7 +89,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]);
  * @param[in] monos : tablica jednomianów
  * @return wielomian będący sumą jednomianów
  */
-Poly PolyAddCopyiedMonos(unsigned count, const Mono *monos);
+Poly PolyAddCopiedMonos(unsigned count, const Mono *monos);
 
 /**
  * Mnoży dwa wielomiany.

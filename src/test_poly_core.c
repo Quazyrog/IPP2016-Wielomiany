@@ -15,7 +15,7 @@ void TestPolynomialBuilding(void)
         (Mono){.p = PolyFromCoeff(3), .exp = 2},
         (Mono){.p = PolyFromCoeff(1), .exp = 3},
     };
-    Poly summed_poly = PolyAddCopyiedMonos(4, monos);
+    Poly summed_poly = PolyAddCopiedMonos(4, monos);
     assert(summed_poly.length == 4);
     assert(summed_poly.monos[0].exp == 0);
     assert(summed_poly.monos[1].p.asCoef == 3);
@@ -30,7 +30,7 @@ void TestPolynomialBuilding(void)
         (Mono){.p = PolyFromCoeff(3), .exp = 2},
         (Mono){.p = PolyFromCoeff(1), .exp = 0},
     };
-    Poly summed_poly2 = PolyAddCopyiedMonos(4, monos2);
+    Poly summed_poly2 = PolyAddCopiedMonos(4, monos2);
     assert(summed_poly2.length == 4);
     assert(summed_poly2.monos[0].exp == 0);
     assert(summed_poly2.monos[1].p.asCoef == 3);
@@ -50,7 +50,7 @@ void TestPolynomialBuilding(void)
         (Mono){.p = PolyFromCoeff(0), .exp = 3},
         (Mono){.p = PolyFromCoeff(1), .exp = 1},
     };
-    Poly summed_poly3 = PolyAddCopyiedMonos(9, monos3);
+    Poly summed_poly3 = PolyAddCopiedMonos(9, monos3);
     assert(summed_poly3.length == 4);
     assert(summed_poly3.monos[0].exp == 0);
     assert(summed_poly3.monos[1].p.asCoef == 3);
@@ -59,9 +59,9 @@ void TestPolynomialBuilding(void)
     PolyDestroy(&summed_poly3);
 
     Mono y_part_mono = (Mono){.p = PolyFromCoeff(1), .exp = 1};
-    Poly y_part = PolyAddCopyiedMonos(1, &y_part_mono);
+    Poly y_part = PolyAddCopiedMonos(1, &y_part_mono);
     Mono y_mono = MonoFromPoly(&y_part, 0);
-    Poly y = PolyAddCopyiedMonos(1, &y_mono);
+    Poly y = PolyAddCopiedMonos(1, &y_mono);
     assert(y.length == 1);
     assert(y.monos[0].exp == 0);
     assert(y.monos[0].p.length == 1);
@@ -93,7 +93,7 @@ void TestPolyAdd(void)
         (Mono){.p = PolyFromCoeff(3), .exp = 2},
         (Mono){.p = PolyFromCoeff(1), .exp = 3},
     };
-    Poly summed_poly = PolyAddCopyiedMonos(4, monos);
+    Poly summed_poly = PolyAddCopiedMonos(4, monos);
 
     //2 + 6x + 6x^2 + 2x^3
     Poly times2 = PolyAdd(&summed_poly, &summed_poly);
@@ -105,7 +105,7 @@ void TestPolyAdd(void)
 
     //(1 + 3y + 3y^2 + y^3)x
     Mono m1x = MonoFromPoly(&summed_poly, 1);
-    Poly p1x = PolyAddCopyiedMonos(1, &m1x);
+    Poly p1x = PolyAddCopiedMonos(1, &m1x);
     assert(p1x.length == 1);
     assert(p1x.monos[0].p.length == 4);
     assert(p1x.monos[0].p.monos[1].exp == 1);
@@ -122,7 +122,7 @@ void TestPolyAdd(void)
     Poly m22x_no_p = PolyFromCoeff(2);
     Mono m22x = MonoFromPoly(&m22x_no_p, 2);
     Mono mmmm[] = {m20x, m21x, m22x};
-    Poly just_too_complex_to_name_it = PolyAddCopyiedMonos(3, mmmm);
+    Poly just_too_complex_to_name_it = PolyAddCopiedMonos(3, mmmm);
     assert(just_too_complex_to_name_it.length == 3);
     assert(just_too_complex_to_name_it.monos[0].p.asCoef == 4);
     assert(just_too_complex_to_name_it.monos[2].p.asCoef == 2);
@@ -153,7 +153,7 @@ void TestPolyAdd(void)
         (Mono){.p = PolyFromCoeff(1), .exp = 1},
         (Mono){.p = PolyFromCoeff(1), .exp = 0},
     };
-    Poly poly_add_pc_p = PolyAddCopyiedMonos(2, monos1);
+    Poly poly_add_pc_p = PolyAddCopiedMonos(2, monos1);
     Poly poly_add_pc_c = PolyFromCoeff(1);
     Poly sum = PolyAdd(&poly_add_pc_c, &poly_add_pc_p);
     assert(sum.length == 2);
@@ -185,7 +185,7 @@ void TestPolyMultiply(void)
         (Mono){.p = PolyFromCoeff(1), .exp = 1},
         (Mono){.p = PolyFromCoeff(1), .exp = 0},
     };
-    Poly poly1p1 = PolyAddCopyiedMonos(2, monos1);
+    Poly poly1p1 = PolyAddCopiedMonos(2, monos1);
     Poly poly1p2 = PolyMul(&poly1p1, &poly1p1);
     Poly poly1p3 = PolyMul(&poly1p2, &poly1p1);
     Poly poly1p5 = PolyMul(&poly1p3, &poly1p2);
@@ -206,13 +206,13 @@ void TestPolyMultiply(void)
         (Mono){.p = PolyFromCoeff(1), .exp = 1},
         (Mono){.p = PolyFromCoeff(1), .exp = 0},
     };
-    Poly poly21 = PolyAddCopyiedMonos(2, monos21);
+    Poly poly21 = PolyAddCopiedMonos(2, monos21);
     Mono monos221[] = {
         (Mono){.p = PolyFromCoeff(1), .exp = 1},
         (Mono){.p = PolyFromCoeff(1), .exp = 0},
     };
-    Mono monos22 = (Mono){.p = PolyAddCopyiedMonos(2, monos221), .exp = 0};
-    Poly poly22 = PolyAddCopyiedMonos(1, &monos22);
+    Mono monos22 = (Mono){.p = PolyAddCopiedMonos(2, monos221), .exp = 0};
+    Poly poly22 = PolyAddCopiedMonos(1, &monos22);
     MonoDestroy(&monos22);
     Poly poly2 = PolyMul(&poly21, &poly22);
     assert(poly2.length == 2);
@@ -246,7 +246,7 @@ void TestPolyMultiply(void)
         (Mono){.p = PolyFromCoeff(1), .exp = 1},
         (Mono){.p = PolyFromCoeff(1), .exp = 0},
     };
-    Poly poly4factor = PolyAddCopyiedMonos(2, monos4);
+    Poly poly4factor = PolyAddCopiedMonos(2, monos4);
     Poly poly4 = PolyMul(&poly3, &poly4factor);
     assert(poly4.length == 4);
     assert(poly4.monos[0].exp == 0);
@@ -283,10 +283,10 @@ void TestPolyMultiply(void)
 static void BuildXY(Poly *x, Poly *y)
 {
     Mono m = (Mono){.p = PolyFromCoeff(1), 1};
-    *x = PolyAddCopyiedMonos(1, &m);
-    Poly poly_y_pre = PolyAddCopyiedMonos(1, &m);
+    *x = PolyAddCopiedMonos(1, &m);
+    Poly poly_y_pre = PolyAddCopiedMonos(1, &m);
     Mono mono_y = MonoFromPoly(&poly_y_pre, 0);
-    *y = PolyAddCopyiedMonos(1, &mono_y);
+    *y = PolyAddCopiedMonos(1, &mono_y);
     MonoDestroy(&mono_y);
 }
 
@@ -298,14 +298,14 @@ void TestEqualAndNeg(void)
         (Mono){.p = PolyFromCoeff(3), .exp = 2},
         (Mono){.p = PolyFromCoeff(1), .exp = 3},
     };
-    Poly some_poly = PolyAddCopyiedMonos(4, some_monos);
+    Poly some_poly = PolyAddCopiedMonos(4, some_monos);
     Mono some_monos_neg[] = {
         (Mono){.p = PolyFromCoeff(-1), .exp = 0},
         (Mono){.p = PolyFromCoeff(-3), .exp = 1},
         (Mono){.p = PolyFromCoeff(-3), .exp = 2},
         (Mono){.p = PolyFromCoeff(-1), .exp = 3},
     };
-    Poly some_poly_neg = PolyAddCopyiedMonos(4, some_monos_neg);
+    Poly some_poly_neg = PolyAddCopiedMonos(4, some_monos_neg);
     Poly zero = PolyZero();
 
     Poly poly0 = PolyAdd(&some_poly, &some_poly_neg);
@@ -451,7 +451,7 @@ void Supplementary(void)
     Mono monos1[] = {
         (Mono){.p = PolyFromCoeff(1L << 32), .exp = 1},
     };
-    Poly p1 = PolyAddCopyiedMonos(1, monos1);
+    Poly p1 = PolyAddCopiedMonos(1, monos1);
     Poly p2 = PolyFromCoeff(1L << 32);
     Poly res = PolyMul(&p1, &p2);
     PolyDestroy(&p1);
