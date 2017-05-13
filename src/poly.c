@@ -20,7 +20,7 @@ static Poly PolySimplifyZero(Poly p)
         if (zero) {
             free(p.monos);
             p.monos = NULL;
-            p.asCoef = NULL;
+            p.asCoef = 0;
         }
     }
     return p;
@@ -470,6 +470,8 @@ bool PolyIsEq(const Poly *p, const Poly *q)
 
 Poly PolyAt(const Poly *p, poly_coeff_t x)
 {
+    if (PolyIsCoeff(p))
+        return *p;
     Poly result = PolyZero();
 
     for (poly_exp_t i = 0; i < p->length; ++i) {

@@ -81,6 +81,7 @@ void TestPolynomialBuilding(void)
     assert(y_and_one.monos[0].p.monos[1].p.asCoef == 1);
     PolyDestroy(&y);
     PolyDestroy(&y_and_one);
+    PolyDestroy(&y_part);
 }
 
 void TestPolyAdd(void)
@@ -383,6 +384,7 @@ void TestDegree(void)
     PolyDestroy(&poly_x);
     PolyDestroy(&poly_y);
     PolyDestroy(&x_plus_y);
+    PolyDestroy(&x_subt_y);
     PolyDestroy(&sum_pow2);
     PolyDestroy(&dif_pow2);
     PolyDestroy(&times);
