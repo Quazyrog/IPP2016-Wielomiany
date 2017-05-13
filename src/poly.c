@@ -6,7 +6,16 @@
 #include <string.h>
 #include "poly.h"
 
+/**
+ * Żeby działało na overflow testach
+ *
+ * Gdy nie uwzglądniamy overflowów, to można załoąyć, że niektóre operacje po prostu nie mogą dać wielomianów zerowych,
+ * i można tego nie sprawdzać. Overflowy naruszają to założenie i mogą w nieoczekiwanym momencie dać zerowy wielomian.
+ * Logika testów nakazuje wtedy uprościć ten wielomian do zerowego i zoverflowowany wielomian stanie się poprawnym
+ * wielomianem, czego testy z core nie uwzględniały.
+ */
 #define WILL_RUN_ILL_TESTS
+
 
 /**
  * Upraszcza wielomian, jeśli ten jest zerowy i zwraca ten wielomian (uproszczony wielomian, nie uproszczoną kopię).
@@ -362,7 +371,14 @@ Poly PolyAddMonos(unsigned count, const Mono *monos)
     Mono *m_copy = malloc(sizeof(Mono) * count);
     for (poly_exp_t i = 0; i < (poly_exp_t )count; ++i)
         m_copy[i] = MonoClone(monos + i);
-    ///FIXME skoro przejmuje na własność to chyba nie może być const? Powinienem jeszcze pamięć zwolnić?
+    return PolyFromMonos(m_copy, count);
+}
+
+Poly PolyAddCopyiedMonos(unsigned count, const Mono *monos)
+{
+    Mono *m_copy = malloc(sizeof(Mono) * count);
+    for (poly_exp_t i = 0; i < (poly_exp_t )count; ++i)
+        m_copy[i] = MonoClone(monos + i);
     return PolyFromMonos(m_copy, count);
 }
 

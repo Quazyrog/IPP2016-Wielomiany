@@ -83,6 +83,15 @@ Poly PolyAdd(const Poly *p, const Poly *q);
 Poly PolyAddMonos(unsigned count, const Mono monos[]);
 
 /**
+ * Wersja PolyAddMonos(), która kopiuje dogłębnie tablicę monos
+ * Sumuje listę jednomianów i tworzy z nich wielomian. Nie przejmuje na własność zawartości tablicy @p monos.
+ * @param[in] count : liczba jednomianów
+ * @param[in] monos : tablica jednomianów
+ * @return wielomian będący sumą jednomianów
+ */
+Poly PolyAddCopyiedMonos(unsigned count, const Mono *monos);
+
+/**
  * Mnoży dwa wielomiany.
  * @param[in] p : wielomian
  * @param[in] q : wielomian
