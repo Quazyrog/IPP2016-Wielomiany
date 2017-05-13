@@ -445,6 +445,21 @@ void PolyTestEvaluation(void)
     PolyDestroy(&full_at_10);
 }
 
+void Supplementary(void)
+{
+    //From overflow test
+    Mono monos1[] = {
+        (Mono){.p = PolyFromCoeff(1L << 32), .exp = 1},
+    };
+    Poly p1 = PolyAddMonos(1, monos1);
+    Poly p2 = PolyFromCoeff(1L << 32);
+    Poly res = PolyMul(&p1, &p2);
+    PolyDestroy(&p1);
+    PolyDestroy(&p2);
+    PolyDestroy(&res);
+    //Mam wrażenie, że to trochę jak robienie testów na undefined bahaviour
+}
+
 void TestCore(void)
 {
     TestPolynomialBuilding();
@@ -453,4 +468,5 @@ void TestCore(void)
     TestEqualAndNeg();
     TestDegree();
     PolyTestEvaluation();
+//    Supplementary();
 }

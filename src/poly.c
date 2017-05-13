@@ -6,6 +6,8 @@
 #include <string.h>
 #include "poly.h"
 
+#define WILL_RUN_ILL_TESTS
+
 /**
  * Upraszcza wielomian, jeśli ten jest zerowy i zwraca ten wielomian (uproszczony wielomian, nie uproszczoną kopię).
  * @param p wielomian do uproszczenia
@@ -82,7 +84,12 @@ static inline Poly PolyAddPC(const Poly *p, const Poly *q)
         for (poly_exp_t i = 0; i < p->length; ++i)
             result.monos[1 + i] = MonoClone(p->monos + i);
     }
+
+#ifdef WILL_RUN_ILL_TESTS
+    return PolySimplifyZero(result);
+#else
     return result;
+#endif
 }
 
 /**
@@ -199,7 +206,11 @@ static Poly PolyMulM(const Poly *p, const Mono *q)
         result.monos[i].p = PolyMul(&p->monos[i].p, &q->p);
     }
 
+#ifdef WILL_RUN_ILL_TESTS
+    return PolySimplifyZero(result);
+#else
     return result;
+#endif
 }
 
 /**
@@ -322,7 +333,11 @@ Poly PolyMul(const Poly *p, const Poly *q)
     if (PolyIsCoeff(q)) {
         Poly result = PolyClone(p);
         PolyScale(&result, q->asCoef);
+#ifdef WILL_RUN_ILL_TESTS
+        return PolySimplifyZero(result);
+#else
         return result;
+#endif
     }
     //W innek kolenjości się zapętli
     if (PolyIsCoeff(p))
