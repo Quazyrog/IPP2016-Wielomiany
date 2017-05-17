@@ -28,7 +28,7 @@ set(SOURCE_FILES
     src/test_poly_core.c
     src/test_poly.c
     src/const_arr.h
-)
+        src/lexer.h src/lexer.c)
 
 # Wskazujemy plik wykonywalny.
 add_executable(test_poly ${SOURCE_FILES})
