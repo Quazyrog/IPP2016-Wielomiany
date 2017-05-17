@@ -82,6 +82,7 @@ static inline Poly PolyAddPC(const Poly *p, const Poly *q)
         //Trzeba zsumować
         result.length = p->length;
         result.monos = malloc(sizeof(Mono) * result.length);
+        assert(result.monos != NULL);
         result.monos[0] = (Mono){.p = PolyAdd(q, &p->monos[0].p), .exp = 0};
         for (poly_exp_t i = 1; i < p->length; ++i)
             result.monos[i] = MonoClone(p->monos + i);
@@ -89,6 +90,7 @@ static inline Poly PolyAddPC(const Poly *p, const Poly *q)
         //Nie sumujemy
         result.length = p->length + 1;
         result.monos = malloc(sizeof(Mono) * result.length);
+        assert(result.monos != NULL);
         result.monos[0] = (Mono){.p = PolyClone(q), .exp = 0};
         for (poly_exp_t i = 0; i < p->length; ++i)
             result.monos[1 + i] = MonoClone(p->monos + i);
@@ -116,6 +118,7 @@ static inline Poly PolyAddPP(const Poly *p, const Poly *q)
     Poly result;
     result.length = CountSumLength(p, q);
     result.monos = malloc(sizeof(Mono) * result.length);
+    assert(result.monos != NULL);
 
     poly_exp_t p_index = 0, q_index = 0, result_index = 0;
     while (p_index < p->length && q_index < q->length) {
@@ -207,6 +210,7 @@ static Poly PolyMulM(const Poly *p, const Mono *q)
     Poly result;
     result.length = p->length;
     result.monos = malloc(sizeof(Mono) * result.length);
+    assert(result.monos != NULL);
 
     //Trzeba ,,rozpakować'' wielomian p, bo inaczej zmniejszami indeksy zmiennych w q, a nie w p
     //i dzieją się dziwne rzeczy
@@ -268,6 +272,7 @@ static void PolySortMonos(Mono *monos, poly_exp_t length)
     poly_exp_t len1 = length / 2;
     poly_exp_t len2 = length - len1;
     Mono *sub1 = malloc(sizeof(Mono) * len1);
+    assert(sub1 != NULL);
     Mono *sub2 = monos + len1;
 
     memcpy(sub1, monos, sizeof(Mono) * len1);
@@ -369,6 +374,7 @@ Poly PolyMul(const Poly *p, const Poly *q)
 Poly PolyAddMonos(unsigned count, const Mono *monos)
 {
     Mono *m_copy = malloc(sizeof(Mono) * count);
+    assert(m_copy != NULL);
     for (poly_exp_t i = 0; i < (poly_exp_t )count; ++i)
         m_copy[i] = monos[i];
     return PolyFromMonos(m_copy, count);
@@ -377,6 +383,7 @@ Poly PolyAddMonos(unsigned count, const Mono *monos)
 Poly PolyAddCopiedMonos(unsigned count, const Mono *monos)
 {
     Mono *m_copy = malloc(sizeof(Mono) * count);
+    assert(m_copy != NULL);
     for (poly_exp_t i = 0; i < (poly_exp_t )count; ++i)
         m_copy[i] = MonoClone(monos + i);
     return PolyFromMonos(m_copy, count);
@@ -391,6 +398,7 @@ Poly PolyClone(const Poly *p)
     } else {
         result.length = p->length;
         result.monos = malloc(sizeof(Mono) * result.length);
+        assert(result.monos != NULL);
         for (poly_exp_t i = 0; i < result.length; ++i)
             result.monos[i] = MonoClone(&p->monos[i]);
     }
@@ -405,6 +413,7 @@ Poly PolyNeg(const Poly *p)
         result.asCoef = -p->asCoef;
     } else {
         result.monos = malloc(sizeof(Mono) * p->length);
+        assert(result.monos != NULL);
         result.length = p->length;
         for (poly_exp_t i = 0; i < result.length; ++i) {
             result.monos[i].exp = p->monos[i].exp;
