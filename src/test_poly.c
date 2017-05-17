@@ -15,7 +15,6 @@
 #define DEG "deg"
 #define DEG_SIMPLE "deg-simple"
 #define DEG_OP "deg-op"
-#define DEG_BY "deg-by"
 #define SIMPLE_AT "simple-at"
 #define SIMPLE_AT2 "simple-at2"
 #define AT "at"
@@ -136,11 +135,10 @@ int main(int argc, char **argv)
     }
     else if (strcmp(argv[1], DEG) == 0)
     {
-        return !DegTest();
-    }
-    else if (strcmp(argv[1], DEG_BY) == 0)
-    {
-        return !DegByTest();
+        bool res = true;
+        res &= DegTest();
+        res &= DegByTest();
+        return !res;
     }
     else if (strcmp(argv[1], SIMPLE_AT) == 0)
     {
@@ -206,7 +204,7 @@ int main(int argc, char **argv)
         MemoryThiefTest();
         MemoryTest();
         res += DegreeOpChangeTest();
-        res += DegTest();
+        res += DegTest() && DegByTest();
         res += SimpleAtTest2();
         res += AtTest();
         res += MulTest();
@@ -254,7 +252,6 @@ void PrintHelp(char *program_name)
     printf("\t%-*s - run simple arithmetic test 2\n", width, SIMPLE_ARITHMETIC2);
     printf("\t%-*s - run simple deg test\n", width, DEG_SIMPLE);
     printf("\t%-*s - run deg test\n", width, DEG);
-    printf("\t%-*s - run degBy test\n", width, DEG_BY);
     printf("\t%-*s - run deg chanege after operations test\n", width, DEG_OP);
     printf("\t%-*s - run simple at test\n", width, SIMPLE_AT);
     printf("\t%-*s - run simple at test 2\n", width, SIMPLE_AT);
