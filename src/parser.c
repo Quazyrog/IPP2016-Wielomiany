@@ -15,38 +15,62 @@
 
 #include "parser.h"
 #include "poly.h"
+#include "lexer.h"
 
 
 /**
- * Parsuje liczbę całkowitą typu <c>long long int</c>.
- * W przypadku niepowodzenia nie wypisuje żadanych komunikatów błędowych, a jedynie zwraca <c>PARSE_FAILURE</c>. Nie ma
- * gwarancji, że wówczas zawartość <c>out</c> nie ulegnie zmianie.
+ * Parsuje współczynnik jednomianu.
+ * To mogłoby byc po prostu ParseIntegere, ALE:
+ *   - ParseInteger parsuje <c>long long int</c>, więc mogło by nie wykryć overflowu
+ *   - Powyższe rzecz jasna nie byłoby problemem, bo można zrzucowac na <c>poly_coeff_t</c> i wtedy wykryć overflow.
+ *     ALE musimy wiedzieć, która cyfra powoduje overflowa, co wszystko psuje: musimy mieć własne ewaluowanie liczb
  * @param p parser źródłowy
- * @param out miejsce w pamięci, do którego zapisze wynik
- * @return informację o powodzeniu parsowania
+ * @param out miejsce do zapisania wyniku
+ * @param invalid_digit tu zostanie zapisany offset zanku w buforze, który spowodował błąd parsowania
+ * Może być <c>NULL</c>, jeśli pozycja nas nie interesuje
+ * <c>Lexer.startColumn + *overflow_digit</c>
+ * @return <c>PARSE_FAILURE</c> jeżeli wystapił overflow; <c>PARSE_SUCCESS</c> w.p.p.
  */
-static int ParseInteger(Parser *p, long long int *out)
+static int ParseCoefficient(Parser *p, poly_coeff_t *out, uint32_t *invalid_digit)
 {
-    char buf[LEXER_TOKEN_BUFFER_SIZE + 1];
-    char *load_ptr = buf;
-
+    poly_coeff_t sgn = 1;
     if (p->lexer.tokenType == TOKEN_SPECIAL_CHAR) {
-        if (p->lexer.tokenBuffer[0] == '-') {
-            *load_ptr = '-';
-            ++load_ptr;
-        } else if (p->lexer.tokenBuffer[0] != '+') {
+        if (p->lexer.tokenBuffer[0] == '-')
+            sgn = -1;
+        else if (p->lexer.tokenBuffer[0] != '+')
             return PARSE_FAILURE;
-        }
         LexerReadNextToken(&p->lexer);
     }
-    if (p->lexer.tokenType != TOKEN_NUMBER)
-        return PARSE_FAILURE;
-    memcpy(load_ptr, p->lexer.tokenBuffer, LEXER_TOKEN_BUFFER_SIZE);
 
-    *out = strtoll(buf, NULL, 10);
-    if (errno == ERANGE)
+    if (p->lexer.tokenType != TOKEN_NUMBER) {
+        *invalid_digit = 0;
         return PARSE_FAILURE;
+    }
+    const char *digits = p->lexer.tokenBuffer;
+    poly_coeff_t value = 0;
 
+    for (uint32_t next_digit = 0; digits[next_digit] != 0; ++next_digit) {
+        poly_coeff_t digit = digits[next_digit] - '0';
+        poly_coeff_t new_value;
+
+        new_value = value * 10;
+        if (new_value / 10 != value) {
+            if (invalid_digit != NULL)
+                *invalid_digit = next_digit;
+            return PARSE_FAILURE;
+        }
+
+        new_value = new_value + sgn * digit;
+        if ((new_value < 0 && value > 0) || (new_value > 0 && value < 0)) {
+            if (invalid_digit != NULL)
+                *invalid_digit = next_digit;
+            return PARSE_FAILURE;
+        }
+
+        value = new_value;
+    }
+
+    *out = value;
     LexerReadNextToken(&p->lexer);
     return PARSE_SUCCESS;
 }
@@ -84,9 +108,9 @@ static int ParseUnsigned(Parser *p, long long unsigned int *out)
 static int ParseCommand(Parser *p)
 {
     if (strcmp(p->lexer.tokenBuffer, "AT") == 0) {
-        long long int arg;
+        poly_coeff_t arg;
         LexerReadNextToken(&p->lexer);
-        if (!LexerExpect(&p->lexer, " ") || !ParseInteger(p, &arg) || p->lexer.tokenType != TOKEN_SEPARATOR) {
+        if (!LexerExpect(&p->lexer, " ") || !ParseCoefficient(p, &arg, NULL) || p->lexer.tokenType != TOKEN_SEPARATOR) {
             fprintf(stderr, "ERROR %u WRONG VALUE\n", (unsigned int)p->lexer.startLine);
             return PARSE_FAILURE;
         }
