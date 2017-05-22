@@ -101,4 +101,14 @@ void LexerInit(Lexer *scanner, FILE *file);
  */
 void LexerReadNextToken(Lexer *scanner);
 
+/**
+ * Porównuje bierzący token z podanym.
+ * Jeżeli tokeny są równe, to wczytywany jest kolejny i zwracane 1. W przeciwnym przypadku nieprawidłowy token jest
+ * pozostawiany w buforze (nie wczytujemy kolejnego) i zwracane jest 0.
+ * @param scanner struktura leksera
+ * @param token oczekiwany token
+ * @return 1 gdy tokeny pasują; 0 w przeciwnym wypadku
+ */
+int LexerExpect(Lexer *scanner, const char *token);
+
 #endif //WIELOMIANY_LEXICALSCANER_H

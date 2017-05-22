@@ -87,4 +87,12 @@ void LexerReadNextToken(Lexer *scanner)
     scanner->tokenBuffer[length] = 0;
 }
 
+int LexerExpect(Lexer *scanner, const char *token)
+{
+    if (strcmp(token, scanner->tokenBuffer) != 0)
+        return 0;
+    LexerReadNextToken(scanner);
+    return 1;
+}
+
 

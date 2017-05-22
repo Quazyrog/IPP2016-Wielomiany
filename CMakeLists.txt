@@ -35,7 +35,8 @@ set(SOURCE_FILES_CALC_ONLY
         src/lexer.h
         src/lexer.c
         src/parser.h
-        src/parser.c src/calc_main.c.c)
+        src/parser.c
+        src/calc_main.c)
 
 # Wskazujemy plik wykonywalny.
 add_executable(calculator ${SOURCE_FILES_COMMON} ${SOURCE_FILES_CALC_ONLY})
