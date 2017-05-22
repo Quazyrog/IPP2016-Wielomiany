@@ -20,18 +20,26 @@ set(CMAKE_C_FLAGS "-std=c11 -Wall -Wextra")
 # set(CMAKE_C_FLAGS_DEBUG "-g")
 
 # Wskazujemy pliki źródłowe.
-set(SOURCE_FILES
-    src/poly.c
-    src/poly.h
-    src/test_poly.c
-    src/test_poly_core.h
-    src/test_poly_core.c
-    src/test_poly.c
-    src/const_arr.h
-        src/lexer.h src/lexer.c)
+set(SOURCE_FILES_COMMON
+        src/poly.c
+        src/poly.h)
+
+set(SOURCE_FILES_TEST_ONLY
+        src/test_poly.c
+        src/test_poly_core.h
+        src/test_poly_core.c
+        src/test_poly.c
+        src/const_arr.h)
+
+set(SOURCE_FILES_CALC_ONLY
+        src/lexer.h
+        src/lexer.c
+        src/parser.h
+        src/parser.c src/calc_main.c.c)
 
 # Wskazujemy plik wykonywalny.
-add_executable(test_poly ${SOURCE_FILES})
+add_executable(calculator ${SOURCE_FILES_COMMON} ${SOURCE_FILES_CALC_ONLY})
+add_executable(test_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_TEST_ONLY})
 
 # Dodajemy obsługę Doxygena: sprawdzamy, czy jest zainstalowany i jeśli tak to:
 find_package(Doxygen)
