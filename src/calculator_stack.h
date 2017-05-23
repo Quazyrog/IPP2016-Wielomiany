@@ -3,12 +3,27 @@
 #ifndef WIELOMIANY_CALCULATOR_STACK_H
 #define WIELOMIANY_CALCULATOR_STACK_H
 
+#define CS_HUNK_SIZE 254
+
+
+struct CSStackHunk
+{
+    struct CSStackHunk *prevHunk;
+    struct CSStackHunk *nextHunk;
+    Poly data[CS_HUNK_SIZE];
+};
+
 
 /**
  * Struktura przechowująca dane stosu kalkulatora.
  */
 typedef struct {
-    //TODO ...
+    uint32_t topHunkTop;
+    uint32_t size;
+    poly_exp_t peArg;
+    poly_coeff_t pcArg;
+    struct CSStackHunk *topHunk;
+    struct CSStackHunk *bottomHunk;
 } CalculatorStack;
 
 
@@ -63,17 +78,21 @@ CalculatorStack CSInit();
 
 void CSDestroy(CalculatorStack *cs);
 
-void CSPushPolynomial(CalculatorStack cs, Poly poly);
+void CSPushPolynomial(CalculatorStack *cs, Poly poly);
 
-void CSPushPEArg(CalculatorStack cs, poly_exp_t arg);
+bool CSCanExecute(CalculatorStack *cs, CSOperation op);
 
-void CSPushPCArg(CalculatorStack cs, poly_coeff_t arg);
+void CSExecute(CalculatorStack *cs, CSOperation op);
 
-Poly CSTop(CalculatorStack cs);
+static inline void CSSetPEArg(CalculatorStack *cs, poly_exp_t arg)
+{
+    cs->peArg = arg;
+}
 
-bool CSCanExecute(CSOperation op);
-
-void CSExecute(CSOperation op);
+static inline void CSSetPCArg(CalculatorStack *cs, poly_coeff_t arg)
+{
+    cs->pcArg = arg;
+}
 
 
 #endif //WIELOMIANY_CALCULATOR_STACK_H
