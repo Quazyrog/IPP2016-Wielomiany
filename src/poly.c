@@ -548,3 +548,27 @@ Poly PolyAt(const Poly *p, poly_coeff_t x)
     return result;
 }
 
+
+void PolyPrint(const Poly *p, FILE *stream)
+{
+    if (p->monos == NULL) {
+        fprintf(stream, "%lli", (long long int) p->asCoef);
+    } else if (p->length == 1 && p->monos[0].exp == 0) {
+        PolyPrint(&p->monos[0].p, stream);
+    } else {
+        bool prepend_plus = false;
+        for (poly_exp_t i = 0; i < p->length; ++i) {
+            if (PolyIsZero(&p->monos[i].p))
+                continue;
+            if (prepend_plus)
+                fputc('+', stream);
+            fputc('(', stream);
+            PolyPrint(&p->monos[i].p, stream);
+            fputc(',', stream);
+            fprintf(stream, "%lu", (long unsigned)p->monos[i].exp);
+            fputc(')', stream);
+            prepend_plus = true;
+        }
+    }
+}
+
