@@ -176,12 +176,7 @@ static inline poly_coeff_t QuickPower(poly_coeff_t base, poly_exp_t exponent)
     return QuickPowerTail(base, exponent, 1);
 }
 
-/**
- * Mnoży wielomian przez skalar.
- * @param p wielomian, który ma zostać pomnożony
- * @param scalar skalar
- */
-static void PolyScale(Poly *p, poly_coeff_t scalar)
+void PolyScaleInplace(Poly *p, poly_coeff_t scalar)
 {
     if (scalar == 0) {
         free(p->monos);
@@ -191,7 +186,7 @@ static void PolyScale(Poly *p, poly_coeff_t scalar)
         p->asCoef *= scalar;
     } else {
         for (poly_exp_t i = 0; i < p->length; ++i)
-            PolyScale(&p->monos[i].p, scalar);
+            PolyScaleInplace(&p->monos[i].p, scalar);
     }
 }
 
@@ -346,7 +341,7 @@ Poly PolyMul(const Poly *p, const Poly *q)
 {
     if (PolyIsCoeff(q)) {
         Poly result = PolyClone(p);
-        PolyScale(&result, q->asCoef);
+        PolyScaleInplace(&result, q->asCoef);
 #ifdef WILL_RUN_ILL_TESTS
         return PolySimplifyZero(result);
 #else
@@ -543,7 +538,7 @@ Poly PolyAt(const Poly *p, poly_coeff_t x)
         Poly old_result = result;
         poly_coeff_t power = QuickPower(x, p->monos[i].exp);
         Poly evaluated_mono = PolyClone(&p->monos[i].p);
-        PolyScale(&evaluated_mono, power);
+        PolyScaleInplace(&evaluated_mono, power);
         result = PolyAdd(&old_result, &evaluated_mono);
 
         PolyDestroy(&old_result);

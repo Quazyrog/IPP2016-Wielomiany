@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 /** Typ współczynników wielomianu */
 typedef long poly_coeff_t;
@@ -154,6 +155,27 @@ bool PolyIsEq(const Poly *p, const Poly *q);
  * @return @f$p(x, x_0, x_1, \ldots)@f$
  */
 Poly PolyAt(const Poly *p, poly_coeff_t x);
+
+/**
+ * Mnoży wielomian przez skalar.
+ * Mnożenie wielomiianu odbywa się w miejscu: mnożony wielomian nie jest kopiowany, tylko sam mnożony.
+ * @param p wielomian, który ma zostać pomnożony
+ * @param scalar skalar
+ */
+void PolyScaleInplace(Poly *p, poly_coeff_t scalar);
+
+/**
+ * Wypisuje wielomian do podanego w argumencie strumienia.
+ * Wypisany wielomian jest zgodny ze specyfikacją zadania, tj:
+ *   - Wielomian-współczynnik jest wypisany jako liczba
+ *   - Jednomian <c>m</c> jest wypisany jako <c>(m.p,m.exp)</c>: wykładnik jako liczba, współczynnik jako wielomian
+ *   – Jednomiany (jeśli więcej niż jeden) są oddzielone znakiem '+'
+ *   – Jednomiany o zerowym współczynniku sa pomijane
+ *   — Złamanie linii NIE jest dodawane
+ * @param p wielomian do wypisania
+ * @param stream strumień wyjściowy
+ */
+void PolyPrint(const Poly *p, FILE *stream);
 
 /**
  * Robi pełną, głęboką kopię jednomianu.

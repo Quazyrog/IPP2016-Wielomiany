@@ -36,6 +36,8 @@ set(SOURCE_FILES_CALC_ONLY
         src/lexer.c
         src/parser.h
         src/parser.c
+        src/calculator_stack.h
+        src/calculator_stack.c
         src/calc_main.c)
 
 # Wskazujemy plik wykonywalny.
