@@ -19,11 +19,22 @@
 
 
 /**
- * Parsuje współczynnik jednomianu.
+ * Parsuje wielomian.
+ * W skład wielomianun wchodzi liczba ze znakiem, lub sekwencja jednomianów oddzielonych znakiem '+'.
+ * @param p parser źródłowy
+ * @param out miejsce w pamięci, do którego zostanie zapisany wynik
+ * @return informacje o powodzeniu parsowania
+ */
+static int ParsePolynomial(Parser *p, Poly *out);
+
+
+/**
+ * Parsuje współczynnik jednomianu (aka <c>long</c>).
  * To mogłoby byc po prostu ParseIntegere, ALE:
  *   - ParseInteger parsuje <c>long long int</c>, więc mogło by nie wykryć overflowu
  *   - Powyższe rzecz jasna nie byłoby problemem, bo można zrzucowac na <c>poly_coeff_t</c> i wtedy wykryć overflow.
  *     ALE musimy wiedzieć, która cyfra powoduje overflowa, co wszystko psuje: musimy mieć własne ewaluowanie liczb
+ * Wartość <c>out</c> nie jest zmieniana w przypadku nieudanego parsowania.
  * @param p parser źródłowy
  * @param out miejsce do zapisania wyniku
  * @param invalid_digit tu zostanie zapisany offset zanku w buforze, który spowodował błąd parsowania
@@ -43,7 +54,8 @@ static int ParseCoefficient(Parser *p, poly_coeff_t *out, uint32_t *invalid_digi
     }
 
     if (p->lexer.tokenType != TOKEN_NUMBER) {
-        *invalid_digit = 0;
+        if (invalid_digit != NULL)
+            *invalid_digit = 0;
         return PARSE_FAILURE;
     }
     const char *digits = p->lexer.tokenBuffer;
@@ -54,7 +66,7 @@ static int ParseCoefficient(Parser *p, poly_coeff_t *out, uint32_t *invalid_digi
         poly_coeff_t new_value;
 
         new_value = value * 10;
-        if (new_value / 10 != value) {
+        if (new_value / 10 != value || (new_value < 0 && value > 0) || (new_value > 0 && value < 0)) {
             if (invalid_digit != NULL)
                 *invalid_digit = next_digit;
             return PARSE_FAILURE;
@@ -77,22 +89,49 @@ static int ParseCoefficient(Parser *p, poly_coeff_t *out, uint32_t *invalid_digi
 
 
 /**
- * Parsuje liczbę całkowitą typu <c>long long unsigned int</c>.
- * W przypadku niepowodzenia nie wypisuje żadanych komunikatów błędowych, a jedynie zwraca <c>PARSE_FAILURE</c>. Nie ma
- * gwarancji, że wówczas zawartość <c>out</c> nie ulegnie zmianie.
+ * Parsuje wykładnik jednomianu (aka <c>int</c>, ale nie pozwala na znak).
+ * To nie może być używane wcześniej parse unsigned, bo wykładniki wchodzą też w skład wielomianu. Wartość <c>out</c>
+ * nie jest zmieniana w przypadku nieudanego parsowania. Jako, iż liczba ta zawsze ma być dodatnia, niedozwolone
+ * jest poprzedzanie znakiem (nawet znakiem '+').
  * @param p parser źródłowy
- * @param out miejsce w pamięci, do którego zapisze wynik
- * @return informację o powodzeniu parsowania
+ * @param out miejsce do zapisania wyniku
+ * @param invalid_digit tu zostanie zapisany offset zanku w buforze, który spowodował błąd parsowania
+ * Może być <c>NULL</c>, jeśli pozycja nas nie interesuje
+ * <c>Lexer.startColumn + *overflow_digit</c>
+ * @return <c>PARSE_FAILURE</c> jeżeli wystapił overflow; <c>PARSE_SUCCESS</c> w.p.p.
  */
-static int ParseUnsigned(Parser *p, long long unsigned int *out)
+static int ParseExponent(Parser *p, poly_exp_t *out, uint32_t *invalid_digit)
 {
-    if (p->lexer.tokenType != TOKEN_NUMBER)
+    if (p->lexer.tokenType != TOKEN_NUMBER) {
+        if (invalid_digit != NULL)
+            *invalid_digit = 0;
         return PARSE_FAILURE;
+    }
+    const char *digits = p->lexer.tokenBuffer;
+    poly_exp_t value = 0;
 
-    *out = strtoull(p->lexer.tokenBuffer, NULL, 10);
-    if (errno == ERANGE)
-        return PARSE_FAILURE;
+    for (uint32_t next_digit = 0; digits[next_digit] != 0; ++next_digit) {
+        poly_exp_t digit = digits[next_digit] - '0';
+        poly_exp_t new_value;
 
+        new_value = value * 10;
+        if (new_value / 10 != value || (new_value < 0 && value > 0) || (new_value > 0 && value < 0)) {
+            if (invalid_digit != NULL)
+                *invalid_digit = next_digit;
+            return PARSE_FAILURE;
+        }
+
+        new_value = new_value + digit;
+        if ((new_value < 0 && value > 0) || (new_value > 0 && value < 0)) {
+            if (invalid_digit != NULL)
+                *invalid_digit = next_digit;
+            return PARSE_FAILURE;
+        }
+
+        value = new_value;
+    }
+
+    *out = value;
     LexerReadNextToken(&p->lexer);
     return PARSE_SUCCESS;
 }
@@ -110,22 +149,22 @@ static int ParseCommand(Parser *p)
     if (strcmp(p->lexer.tokenBuffer, "AT") == 0) {
         poly_coeff_t arg;
         LexerReadNextToken(&p->lexer);
-        if (!LexerExpect(&p->lexer, " ") || !ParseCoefficient(p, &arg, NULL) || p->lexer.tokenType != TOKEN_SEPARATOR) {
+        if (!LexerExpectChar(&p->lexer, ' ') || !ParseCoefficient(p, &arg, NULL) || p->lexer.tokenType != TOKEN_SEPARATOR) {
             fprintf(stderr, "ERROR %u WRONG VALUE\n", (unsigned int)p->lexer.startLine);
             return PARSE_FAILURE;
         }
         //TODO wykonaj AT
-        printf("at(%lli)\n", arg);
+        printf("at(%li)\n", arg);
 
     } else if (strcmp(p->lexer.tokenBuffer, "DEG_BY") == 0) {
-        long long unsigned int arg;
+        poly_exp_t arg;
         LexerReadNextToken(&p->lexer);
-        if (!LexerExpect(&p->lexer, " ") || !ParseUnsigned(p, &arg) || p->lexer.tokenType != TOKEN_SEPARATOR) {
+        if (!LexerExpectChar(&p->lexer, ' ') || !ParseExponent(p, &arg, NULL) || p->lexer.tokenType != TOKEN_SEPARATOR) {
             fprintf(stderr, "ERROR %u WRONG VALUE\n", (unsigned int)p->lexer.startLine);
             return PARSE_FAILURE;
         }
         //TODO wykonaj DEG_BY
-        printf("degby(%llu)\n", arg);
+        printf("degby(%i)\n", arg);
 
     } else {
         //TODO reszta poleceń
@@ -138,15 +177,91 @@ static int ParseCommand(Parser *p)
 
 
 /**
- * Parsuje wielomian.
- * W skład wielomianun wchodzi liczba ze znakiem, lub sekwencja jednomianów oddzielonych znakiem '+'.
+ * Parsuje jednomian, czyli wyrażenie w postaci "(<Wielomian>,<Liczba bez znaku>)". W przypadku niepowodzenia, wypisuje
+ * komunikat błędowy zgodny z treścią zadania.
  * @param p parser źródłowy
- * @param out miejsce w pamięci, do którego zostanie zapisany wynik
- * @return informacje o powodzeniu parsowania
+ * @param out miejsce w pamięci do zapisania sparsowanego jednomianu
+ * @return feedback parsowania
  */
+static int ParseMonomial(Parser *p, Mono *out)
+{
+    if (!LexerExpectChar(&p->lexer, '(')) {
+        fprintf(stderr, "ERROR %u %u\n", p->lexer.startLine, p->lexer.startColumn);
+        return PARSE_FAILURE;
+    }
+
+    Poly poly;
+    if (!ParsePolynomial(p, &poly))
+        return PARSE_FAILURE;
+
+    if (!LexerExpectChar(&p->lexer, ',')) {
+        fprintf(stderr, "ERROR %u %u\n", p->lexer.startLine, p->lexer.startColumn);
+        PolyDestroy(&poly);
+        return PARSE_FAILURE;
+    }
+
+    poly_exp_t exponent;
+    uint32_t error_location;
+    if (!ParseExponent(p, &exponent, &error_location)) {
+        fprintf(stderr, "ERROR %u %u\n", p->lexer.startLine, p->lexer.startColumn + error_location);
+        PolyDestroy(&poly);
+        return PARSE_FAILURE;
+    }
+
+    if (!LexerExpectChar(&p->lexer, ')')) {
+        fprintf(stderr, "ERROR %u %u\n", p->lexer.startLine, p->lexer.startColumn);
+        PolyDestroy(&poly);
+        return PARSE_FAILURE;
+    }
+
+    *out = MonoFromPoly(&poly, exponent);
+    return PARSE_SUCCESS;
+}
+
+
 static int ParsePolynomial(Parser *p, Poly *out)
 {
-    //TODO ...
+    if (p->lexer.tokenBuffer[0] == '(') {
+        uint32_t mono_array_size = 256;
+        uint32_t mono_array_top_ptr = 0;
+        Mono *mono_array = malloc(mono_array_size * sizeof(Mono));
+        assert(mono_array != NULL);
+        Mono next;
+        int status = PARSE_SUCCESS;
+
+        do {
+            if (!ParseMonomial(p, &next)) {
+                status = PARSE_FAILURE;
+                break;
+            }
+            if (mono_array_top_ptr == mono_array_size) {
+                Mono *temp = realloc(mono_array, mono_array_size * 2);
+                assert(temp != NULL);
+                mono_array_size *= 2;
+                mono_array = temp;
+            }
+            mono_array[mono_array_top_ptr++] = next;
+        } while (LexerExpectChar(&p->lexer, '+'));
+
+        if (status) {
+            *out = PolyAddMonos(mono_array_top_ptr, mono_array);
+        } else {
+            for (uint32_t i = 0; i < mono_array_top_ptr; ++i)
+                MonoDestroy(mono_array + i);
+        }
+        free(mono_array);
+        return status;
+
+    } else {
+        uint32_t error_offset;
+        poly_coeff_t coef;
+        if (!ParseCoefficient(p, &coef, &error_offset)) {
+            fprintf(stderr, "ERROR %u %u\n", p->lexer.startLine, p->lexer.startColumn + error_offset);
+            return PARSE_FAILURE;
+        }
+        *out = PolyFromCoeff(coef);
+        return PARSE_SUCCESS;
+    }
 }
 
 
@@ -160,14 +275,19 @@ static int ParsePolynomial(Parser *p, Poly *out)
 static int ParseNextLine(Parser *p)
 {
     int feedback;
-    if (p->lexer.tokenType == TOKEN_COMMAND)
+    if (p->lexer.tokenType == TOKEN_COMMAND) {
         feedback = ParseCommand(p);
-    else
-        feedback = ParsePolynomial(p, NULL); //FIXME nie NULL
+    } else {
+        Poly poly;
+        feedback = ParsePolynomial(p, &poly);
+        //TODO push na stos
+        if (feedback)
+            PolyDestroy(&poly);
+    }
 
     if (!feedback)
         return PARSE_FAILURE;
-    if (!LexerExpect(&p->lexer, "\n")) {
+    if (!LexerExpectChar(&p->lexer, '\n')) {
         fprintf(stderr, "ERROR %u EOL EXPECTED\n", (unsigned int)p->lexer.startLine);
         return PARSE_FAILURE;
     }

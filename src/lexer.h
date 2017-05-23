@@ -111,4 +111,14 @@ void LexerReadNextToken(Lexer *scanner);
  */
 int LexerExpect(Lexer *scanner, const char *token);
 
+
+/**
+ * Wersja <c>LexerExpect</c> działająca z jednym znakiem.
+ * Sprawdza, czy podany znak jest jedynym znakiem tokenu.
+ * @param scanner struktura leksera
+ * @param token oczekiwany token
+ * @return 1 gdy tokeny pasują; 0 w przeciwnym wypadku
+ */
+int LexerExpectChar(Lexer *scanner, char token);
+
 #endif //WIELOMIANY_LEXICALSCANER_H

@@ -22,10 +22,12 @@ int main(int argc, const char **argv)
         return EXITCODE_FILE_OPEN_ERROR;
     }
 
-    Parser parser;
+    Parser parser = ParserInit();
     ParserPrepare(&parser, source, stdout);
     if (ParserExecuteAll(&parser) != PARSE_SUCCESS)
         return EXITCODE_FILE_SYNTAX_ERROR;
+    ParserDestroy(&parser);
+    fclose(source);
 
     return EXITCODE_NO_ERROR;
 }
