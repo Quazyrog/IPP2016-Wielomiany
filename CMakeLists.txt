@@ -41,7 +41,7 @@ set(SOURCE_FILES_CALC_ONLY
         src/calc_main.c)
 
 # Wskazujemy plik wykonywalny.
-add_executable(calculator ${SOURCE_FILES_COMMON} ${SOURCE_FILES_CALC_ONLY})
+add_executable(calc_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_CALC_ONLY})
 add_executable(test_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_TEST_ONLY})
 
 # Dodajemy obsługę Doxygena: sprawdzamy, czy jest zainstalowany i jeśli tak to:
