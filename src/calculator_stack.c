@@ -236,7 +236,7 @@ void CSExecute(CalculatorStack *cs, CSOperation op, FILE *out) {
             fprintf(out, "%i\n", (int)PolyDeg(CSTopPtr(cs)));
             break;
         case OPERATION_DEG_BY:
-            fprintf(out, "%i\n", (int)PolyDegBy(CSTopPtr(cs), (unsigned int)cs->peArg));
+            fprintf(out, "%i\n", (int)PolyDegBy(CSTopPtr(cs), cs->uiArg));
             break;
         case OPERATION_AT:
             p1 = CSPopPolynomial(cs);

@@ -9,6 +9,7 @@
  *     składniowej
  *   - Jeżeli parsowanie nie powiedzie się, wczytanym do leksera tokenem będzie token, który spowodował błąd.
  */
+#include <limits.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -48,7 +49,7 @@ static int ParseCoefficient(Parser *p, poly_coeff_t *out, uint32_t *invalid_digi
     if (p->lexer.tokenType == TOKEN_SPECIAL_CHAR) {
         if (p->lexer.tokenBuffer[0] == '-')
             sgn = -1;
-        else if (p->lexer.tokenBuffer[0] != '+')
+        else
             return PARSE_FAILURE;
         LexerReadNextToken(&p->lexer);
     }
@@ -138,6 +139,29 @@ static int ParseExponent(Parser *p, poly_exp_t *out, uint32_t *invalid_digit)
 
 
 /**
+ * Patarsuje i ustawia na stosie operacji argument polecenia <c>DEG_BY</c>.
+ * @param p struktura parsera
+ * @return feedback parsowania
+ */
+static int ParseAndPushDegByParameter(Parser *p)
+{
+    LexerReadNextToken(&p->lexer);
+    if (!LexerExpectChar(&p->lexer, ' ') || p->lexer.tokenType != TOKEN_NUMBER) {
+        fprintf(stderr, "ERROR %u WRONG VARIABLE\n", (unsigned int)p->lexer.startLine);
+        return PARSE_FAILURE;
+    }
+    long unsigned int arg = strtoul(p->lexer.tokenBuffer, NULL, 10);
+    LexerReadNextToken(&p->lexer);
+    if (errno == ERANGE || arg > UINT_MAX || p->lexer.tokenBuffer[0] != '\n') {
+        fprintf(stderr, "ERROR %u WRONG VARIABLE\n", (unsigned int)p->lexer.startLine);
+        return PARSE_FAILURE;
+    }
+    CSSetUIArg(&p->stack, (unsigned int)arg);
+    return PARSE_SUCCESS;
+}
+
+
+/**
  * Parsuje i wykonuje polecenie.
  * W przypadku błędu wypisuje komunikat zgodny z treścią zadania. Po poleceniu powinien następować separator, jednak
  * nie jest on wliczany do jednoski składniowej polecenia (zostanie w buforze).
@@ -158,13 +182,8 @@ static int ParseCommand(Parser *p)
         CSSetPCArg(&p->stack, arg);
         op_code = OPERATION_AT;
     } else if (strcmp(p->lexer.tokenBuffer, "DEG_BY") == 0) {
-        poly_exp_t arg = 0;
-        LexerReadNextToken(&p->lexer);
-        if (!LexerExpectChar(&p->lexer, ' ') || !ParseExponent(p, &arg, NULL) || p->lexer.tokenBuffer[0] != '\n') {
-            fprintf(stderr, "ERROR %u WRONG VARIABLE\n", (unsigned int)p->lexer.startLine);
+        if (!ParseAndPushDegByParameter(p))
             return PARSE_FAILURE;
-        }
-        CSSetPEArg(&p->stack, arg);
         op_code = OPERATION_DEG_BY;
     } else {
         op_code = CSOperationFromString(p->lexer.tokenBuffer);

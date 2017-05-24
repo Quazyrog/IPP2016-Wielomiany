@@ -19,7 +19,7 @@ typedef struct {
     uint32_t size;
 
     ///Argument dodatkowy dla operacji <c>OPERATION_DEG_BY</c>
-    poly_exp_t peArg;
+    unsigned int uiArg;
 
     ///Argument dodatkowy dla operacji <c>OPERATION_AT</c>
     poly_coeff_t pcArg;
@@ -142,9 +142,9 @@ void CSExecute(CalculatorStack *cs, CSOperation op, FILE *out);
  * @param cs struktura stosu
  * @param arg wartosć argumentu
  */
-static inline void CSSetPEArg(CalculatorStack *cs, poly_exp_t arg)
+static inline void CSSetUIArg(CalculatorStack *cs, unsigned int arg)
 {
-    cs->peArg = arg;
+    cs->uiArg = arg;
 }
 
 /**

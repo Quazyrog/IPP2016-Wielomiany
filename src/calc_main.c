@@ -39,7 +39,8 @@ int main(int argc, const char **argv)
     if (ParserExecuteAll(&parser, true) != PARSE_SUCCESS)
         return EXITCODE_FILE_SYNTAX_ERROR;
     ParserDestroy(&parser);
-    fclose(source);
+    if (source != stdin)
+        fclose(source);
 
     return EXITCODE_NO_ERROR;
 }
