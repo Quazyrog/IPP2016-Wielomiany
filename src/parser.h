@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include "lexer.h"
+#include "calculator_stack.h"
 
 
 ///Zwracane przez funkcje parsujące po udanym sparsowaniu. Kod: <c>if (PARSE_SUCCESS) { ... }</c> zostanie wykonany
@@ -34,6 +35,9 @@ typedef struct {
 
     ///Lekser używany przez parsera
     Lexer lexer;
+
+    ///Stos wykonujący parsowane polecenia
+    CalculatorStack stack;
 } Parser;
 
 

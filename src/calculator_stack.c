@@ -205,10 +205,10 @@ void CSExecute(CalculatorStack *cs, CSOperation op, FILE *out) {
             CSPushPolynomial(cs, PolyZero());
             break;
         case OPERATION_IS_COEFF:
-            fprintf(out, "%u\n", (unsigned int)PolyIsCoeff(CSTopPtr(cs)));
+            fprintf(out, "%i\n", (int)PolyIsCoeff(CSTopPtr(cs)));
             break;
         case OPERATION_IS_ZERO:
-            fprintf(out, "%u\n", (unsigned int)PolyIsZero(CSTopPtr(cs)));
+            fprintf(out, "%i\n", (int)PolyIsZero(CSTopPtr(cs)));
             break;
         case OPERATION_CLONE:
             CSPushPolynomial(cs, PolyClone(CSTopPtr(cs)));
@@ -228,15 +228,15 @@ void CSExecute(CalculatorStack *cs, CSOperation op, FILE *out) {
         case OPERATION_IS_EQ:
             p1 = CSPopPolynomial(cs);
             p2 = CSPopPolynomial(cs);
-            fprintf(out, "%u\n", (unsigned int)PolyIsEq(&p1, &p2));
+            fprintf(out, "%i\n", (int)PolyIsEq(&p1, &p2));
             CSPushPolynomial(cs, p2);
             CSPushPolynomial(cs, p1);
             break;
         case OPERATION_DEG:
-            fprintf(out, "%u\n", (unsigned int)PolyDeg(CSTopPtr(cs)));
+            fprintf(out, "%i\n", (int)PolyDeg(CSTopPtr(cs)));
             break;
         case OPERATION_DEG_BY:
-            fprintf(out, "%u\n", (unsigned int)PolyDegBy(CSTopPtr(cs), (unsigned int)cs->peArg));
+            fprintf(out, "%i\n", (int)PolyDegBy(CSTopPtr(cs), (unsigned int)cs->peArg));
             break;
         case OPERATION_AT:
             p1 = CSPopPolynomial(cs);
@@ -244,6 +244,7 @@ void CSExecute(CalculatorStack *cs, CSOperation op, FILE *out) {
             break;
         case OPERATION_PRINT:
             PolyPrint(CSTopPtr(cs), out);
+            fputc('\n', out);
             break;
         case OPERATION_POP:
             PolyDestroy(CSTopPtr(cs));

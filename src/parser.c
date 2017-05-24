@@ -153,8 +153,8 @@ static int ParseCommand(Parser *p)
             fprintf(stderr, "ERROR %u WRONG VALUE\n", (unsigned int)p->lexer.startLine);
             return PARSE_FAILURE;
         }
-        //TODO wykonaj AT
-        printf("at(%li)\n", arg);
+        CSSetPCArg(&p->stack, arg);
+        CSExecute(&p->stack, OPERATION_AT, p->output);
 
     } else if (strcmp(p->lexer.tokenBuffer, "DEG_BY") == 0) {
         poly_exp_t arg;
@@ -163,12 +163,12 @@ static int ParseCommand(Parser *p)
             fprintf(stderr, "ERROR %u WRONG VALUE\n", (unsigned int)p->lexer.startLine);
             return PARSE_FAILURE;
         }
-        //TODO wykonaj DEG_BY
-        printf("degby(%i)\n", arg);
+        CSSetPEArg(&p->stack, arg);
+        CSExecute(&p->stack, OPERATION_DEG_BY, p->output);
 
     } else {
-        //TODO reszta poleceń
-        printf("cmd(%s)\n", p->lexer.tokenBuffer);
+        CSOperation op_code = CSOperationFromString(p->lexer.tokenBuffer);
+        CSExecute(&p->stack, op_code, p->output);
         LexerReadNextToken(&p->lexer);
     }
 
@@ -280,9 +280,7 @@ static int ParseNextLine(Parser *p)
     } else {
         Poly poly;
         feedback = ParsePolynomial(p, &poly);
-        //TODO push na stos
-        if (feedback)
-            PolyDestroy(&poly);
+        CSPushPolynomial(&p->stack, poly);
     }
 
     if (!feedback)
@@ -313,12 +311,12 @@ int ParserExecuteAll(Parser *parser) {
 
 
 Parser ParserInit(void) {
-    //TODO będzie być może mądrzejsza, kiedy parser będzie potrzebowac stosu
     Parser result;
+    result.stack = CSInit();
     return result;
 }
 
 
 void ParserDestroy(Parser *parser) {
-    //TODO będzie na pewno mądrzejsza, kiedy parser będzie potrzebowac stosu
+    CSDestroy(&parser->stack);
 }
