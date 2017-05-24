@@ -558,8 +558,6 @@ void PolyPrint(const Poly *p, FILE *stream)
 {
     if (p->monos == NULL) {
         fprintf(stream, "%lli", (long long int) p->asCoef);
-    } else if (p->length == 1 && p->monos[0].exp == 0) {
-        PolyPrint(&p->monos[0].p, stream);
     } else {
         bool prepend_plus = false;
         for (poly_exp_t i = 0; i < p->length; ++i) {
