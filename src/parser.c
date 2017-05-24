@@ -151,7 +151,7 @@ static int ParseCommand(Parser *p)
     if (strcmp(p->lexer.tokenBuffer, "AT") == 0) {
         poly_coeff_t arg = 0;
         LexerReadNextToken(&p->lexer);
-        if (!LexerExpectChar(&p->lexer, ' ') || !ParseCoefficient(p, &arg, NULL) || p->lexer.tokenType != TOKEN_SEPARATOR) {
+        if (!LexerExpectChar(&p->lexer, ' ') || !ParseCoefficient(p, &arg, NULL) || p->lexer.tokenBuffer[0] != '\n') {
             fprintf(stderr, "ERROR %u WRONG VALUE\n", (unsigned int)p->lexer.startLine);
             return PARSE_FAILURE;
         }
@@ -160,8 +160,8 @@ static int ParseCommand(Parser *p)
     } else if (strcmp(p->lexer.tokenBuffer, "DEG_BY") == 0) {
         poly_exp_t arg = 0;
         LexerReadNextToken(&p->lexer);
-        if (!LexerExpectChar(&p->lexer, ' ') || !ParseExponent(p, &arg, NULL) || p->lexer.tokenType != TOKEN_SEPARATOR) {
-            fprintf(stderr, "ERROR %u WRONG VALUE\n", (unsigned int)p->lexer.startLine);
+        if (!LexerExpectChar(&p->lexer, ' ') || !ParseExponent(p, &arg, NULL) || p->lexer.tokenBuffer[0] != '\n') {
+            fprintf(stderr, "ERROR %u WRONG VARIABLE\n", (unsigned int)p->lexer.startLine);
             return PARSE_FAILURE;
         }
         CSSetPEArg(&p->stack, arg);
@@ -299,10 +299,7 @@ static int ParseNextLine(Parser *p)
 
     if (!feedback)
         return PARSE_FAILURE;
-    if (!LexerExpectChar(&p->lexer, '\n')) {
-        fprintf(stderr, "ERROR %u %u EOL EXPECTED\n", p->lexer.startLine, p->lexer.startColumn);
-        return PARSE_FAILURE;
-    }
+    LexerSkipEOL(&p->lexer);
     return PARSE_SUCCESS;
 }
 
