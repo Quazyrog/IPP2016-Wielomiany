@@ -22,16 +22,21 @@
  * @param p wielomian do uproszczenia
  * @return <code>p</code> po uptrzednim uproszczeniu
  */
-static Poly PolySimplifyZero(Poly p)
+static Poly PolySimplifyCoeff(Poly p)
 {
     if (p.monos != NULL) {
-        bool zero = true;
-        for (poly_exp_t i = 0; i < p.length && zero; ++i)
-            zero &= PolyIsZero(&p.monos[i].p);
-        if (zero) {
+        bool first_zero = PolyIsZero(&p.monos[0].p);
+        bool other_zeros = true;
+        for (poly_exp_t i = 1; i < p.length && other_zeros; ++i)
+            other_zeros &= PolyIsZero(&p.monos[i].p);
+        if (first_zero && other_zeros) {
             free(p.monos);
             p.monos = NULL;
             p.asCoef = 0;
+        } else if (other_zeros && p.monos[0].exp == 0 && PolyIsCoeff(&p.monos[0].p)) {
+            Poly nested = p.monos[0].p;
+            free(p.monos);
+            return nested;
         }
     }
     return p;
@@ -97,7 +102,7 @@ static inline Poly PolyAddPC(const Poly *p, const Poly *q)
     }
 
 #ifdef WILL_RUN_ILL_TESTS
-    return PolySimplifyZero(result);
+    return PolySimplifyCoeff(result);
 #else
     return result;
 #endif
@@ -144,7 +149,7 @@ static inline Poly PolyAddPP(const Poly *p, const Poly *q)
     for (; q_index < q->length; ++q_index)
         result.monos[result_index++] = MonoClone(&q->monos[q_index]);
 
-    return PolySimplifyZero(result);
+    return PolySimplifyCoeff(result);
 }
 
 /**
@@ -215,7 +220,7 @@ static Poly PolyMulM(const Poly *p, const Mono *q)
     }
 
 #ifdef WILL_RUN_ILL_TESTS
-    return PolySimplifyZero(result);
+    return PolySimplifyCoeff(result);
 #else
     return result;
 #endif
@@ -309,7 +314,7 @@ static Poly PolyFromMonos(Mono *monos, poly_exp_t length)
     Poly p;
     p.monos = monos;
     p.length = i + 1;
-    return PolySimplifyZero(p);
+    return PolySimplifyCoeff(p);
 }
 
 void PolyDestroy(Poly *p)
@@ -343,7 +348,7 @@ Poly PolyMul(const Poly *p, const Poly *q)
         Poly result = PolyClone(p);
         PolyScaleInplace(&result, q->asCoef);
 #ifdef WILL_RUN_ILL_TESTS
-        return PolySimplifyZero(result);
+        return PolySimplifyCoeff(result);
 #else
         return result;
 #endif
@@ -363,7 +368,7 @@ Poly PolyMul(const Poly *p, const Poly *q)
         PolyDestroy(&next);
     }
 
-    return PolySimplifyZero(fold);
+    return PolySimplifyCoeff(fold);
 }
 
 Poly PolyAddMonos(unsigned count, const Mono *monos)
@@ -423,7 +428,7 @@ Poly PolySub(const Poly *p, const Poly *q)
     Poly q_neg = PolyNeg(q);
     Poly result = PolyAdd(p, &q_neg);
     PolyDestroy(&q_neg);
-    return PolySimplifyZero(result);
+    return PolySimplifyCoeff(result);
 }
 
 poly_exp_t PolyDegBy(const Poly *p, unsigned var_idx)
