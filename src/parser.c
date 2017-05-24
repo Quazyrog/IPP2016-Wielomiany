@@ -146,32 +146,40 @@ static int ParseExponent(Parser *p, poly_exp_t *out, uint32_t *invalid_digit)
  */
 static int ParseCommand(Parser *p)
 {
+    CSOperation op_code;
+
     if (strcmp(p->lexer.tokenBuffer, "AT") == 0) {
-        poly_coeff_t arg;
+        poly_coeff_t arg = 0;
         LexerReadNextToken(&p->lexer);
         if (!LexerExpectChar(&p->lexer, ' ') || !ParseCoefficient(p, &arg, NULL) || p->lexer.tokenType != TOKEN_SEPARATOR) {
             fprintf(stderr, "ERROR %u WRONG VALUE\n", (unsigned int)p->lexer.startLine);
             return PARSE_FAILURE;
         }
         CSSetPCArg(&p->stack, arg);
-        CSExecute(&p->stack, OPERATION_AT, p->output);
-
+        op_code = OPERATION_AT;
     } else if (strcmp(p->lexer.tokenBuffer, "DEG_BY") == 0) {
-        poly_exp_t arg;
+        poly_exp_t arg = 0;
         LexerReadNextToken(&p->lexer);
         if (!LexerExpectChar(&p->lexer, ' ') || !ParseExponent(p, &arg, NULL) || p->lexer.tokenType != TOKEN_SEPARATOR) {
             fprintf(stderr, "ERROR %u WRONG VALUE\n", (unsigned int)p->lexer.startLine);
             return PARSE_FAILURE;
         }
         CSSetPEArg(&p->stack, arg);
-        CSExecute(&p->stack, OPERATION_DEG_BY, p->output);
-
+        op_code = OPERATION_DEG_BY;
     } else {
-        CSOperation op_code = CSOperationFromString(p->lexer.tokenBuffer);
-        CSExecute(&p->stack, op_code, p->output);
+        op_code = CSOperationFromString(p->lexer.tokenBuffer);
         LexerReadNextToken(&p->lexer);
+        if (op_code == OPERATION_INVALID || p->lexer.tokenBuffer[0] != '\n') {
+            fprintf(stderr, "ERROR %u WRONG COMMAND\n", (unsigned int)p->lexer.startLine);
+            return PARSE_FAILURE;
+        }
     }
 
+    if (!CSCanExecute(&p->stack, op_code)) {
+        fprintf(stderr, "ERROR %u STACK UNDERFLOW\n", (unsigned int)p->lexer.startLine);
+        return PARSE_FAILURE;
+    }
+    CSExecute(&p->stack, op_code, p->output);
     return PARSE_SUCCESS;
 }
 
@@ -253,7 +261,7 @@ static int ParsePolynomial(Parser *p, Poly *out)
         return status;
 
     } else {
-        uint32_t error_offset;
+        uint32_t error_offset = 0;
         poly_coeff_t coef;
         if (!ParseCoefficient(p, &coef, &error_offset)) {
             fprintf(stderr, "ERROR %u %u\n", p->lexer.startLine, p->lexer.startColumn + error_offset);
@@ -280,13 +288,18 @@ static int ParseNextLine(Parser *p)
     } else {
         Poly poly;
         feedback = ParsePolynomial(p, &poly);
+        if (feedback && p->lexer.tokenBuffer[0] != '\n') {
+            fprintf(stderr, "ERROR %u %u\n", p->lexer.startLine, p->lexer.startColumn);
+            PolyDestroy(&poly);
+            return PARSE_FAILURE;
+        }
         CSPushPolynomial(&p->stack, poly);
     }
 
     if (!feedback)
         return PARSE_FAILURE;
     if (!LexerExpectChar(&p->lexer, '\n')) {
-        fprintf(stderr, "ERROR %u EOL EXPECTED\n", (unsigned int)p->lexer.startLine);
+        fprintf(stderr, "ERROR %u %u EOL EXPECTED\n", p->lexer.startLine, p->lexer.startColumn);
         return PARSE_FAILURE;
     }
     return PARSE_SUCCESS;
@@ -300,11 +313,15 @@ void ParserPrepare(Parser *parser, FILE *source, FILE *output)
 }
 
 
-int ParserExecuteAll(Parser *parser) {
+int ParserExecuteAll(Parser *parser, bool error_resume_next) {
     LexerReadNextToken(&parser->lexer);
     while (parser->lexer.tokenType != TOKEN_EOF) {
-        if (!ParseNextLine(parser))
-            return PARSE_FAILURE;
+        int feedback = ParseNextLine(parser);
+        if (!feedback) {
+            if (!error_resume_next)
+                return PARSE_FAILURE;
+            LexerSkipEOL(&parser->lexer);
+        }
     }
     return PARSE_SUCCESS;
 }

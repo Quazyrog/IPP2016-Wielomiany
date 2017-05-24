@@ -97,12 +97,22 @@ int LexerExpect(Lexer *scanner, const char *token)
 }
 
 
-int LexerExpectChar(Lexer *scanner, char token) {
+int LexerExpectChar(Lexer *scanner, char token)
+{
     if (scanner->tokenBuffer[0] == token && scanner->tokenBuffer[1] == 0) {
         LexerReadNextToken(scanner);
         return 1;
     }
     return 0;
+}
+
+
+void LexerSkipEOL(Lexer *scanner)
+{
+
+    while (*scanner->tokenBuffer != '\n' && scanner->tokenType != TOKEN_EOF)
+        LexerReadNextToken(scanner);
+    LexerReadNextToken(scanner);
 }
 
 

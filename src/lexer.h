@@ -102,6 +102,14 @@ void LexerInit(Lexer *scanner, FILE *file);
 void LexerReadNextToken(Lexer *scanner);
 
 /**
+ * Zignoruj wszystkie dane w tej linijce.
+ * Po wywołaniu tej funkcji wczytanym do bufora tokenem będzie następny token nowej linijki, lub koniec pliku jeżeli
+ * do niego dotrzemy.
+ * @param scanner struktura leksera
+ */
+void LexerSkipEOL(Lexer *scanner);
+
+/**
  * Porównuje bierzący token z podanym.
  * Jeżeli tokeny są równe, to wczytywany jest kolejny i zwracane 1. W przeciwnym przypadku nieprawidłowy token jest
  * pozostawiany w buforze (nie wczytujemy kolejnego) i zwracane jest 0.

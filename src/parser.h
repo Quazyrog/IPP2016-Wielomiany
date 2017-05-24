@@ -73,7 +73,7 @@ void ParserPrepare(Parser *parser, FILE *source, FILE *output);
  * @param parser parser wykonując polecenia
  * @return <c>PARSE_SUCCESS</c> kiedy cały plik został pomyślnie sparsowany i wykonany; <c>PARSE_FAILURE</c> w.p.p.
  */
-int ParserExecuteAll(Parser *parser);
+int ParserExecuteAll(Parser *parser, bool error_resume_next);
 
 
 #endif //WIELOMIANY_PARSER_H
