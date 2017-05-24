@@ -1,11 +1,52 @@
+/** @file calculator_stack.c
+ * Implementacja stosu kalkulatora.
+ */
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 #include "calculator_stack.h"
 
+///Rozmiar alokacji pojedynczego segmentu stosu (w liczbie wielomianów)
+#define CS_HUNK_SIZE 254
 
+
+/**
+ * Struktura pojedynczego segmentu stosu.
+ */
+struct CSStackHunk
+{
+    ///Wskaźnik na poprawdni segment stosu; <c>NULL</c> w pierwszym segmencie
+    struct CSStackHunk *prevHunk;
+
+    ///Wskażnik na następny segment stosu; <c>NULL</c> w ostatnim segmencie
+    struct CSStackHunk *nextHunk;
+
+    ///Dane tego segmentu stosu
+    Poly data[CS_HUNK_SIZE];
+};
+
+
+
+/**
+ * Alokuje i inicjalizuje <c>NULL</c>ami kolejny segment stosu
+ * @return
+ */
 static struct CSStackHunk *CSAllocHunk();
+
+/**
+ * Dostęp do wskaźnika na wielomian znajdujący się na wierzchu stosu.
+ * Jeżeli stos jest pusty, może zabić program assertem.
+ * @param cs struktura stosu
+ * @return wielomian na wierzchołku stosu
+ */
 static Poly *CSTopPtr(CalculatorStack *cs);
+
+/**
+ * Zdejmuje wielomian z wierzchołka stosu.
+ * Próba wykonania na pustym stosie, może zabić assertem.
+ * @param cs struktura stosu
+ * @return wielomian z wierzchołka stosu
+ */
 static Poly CSPopPolynomial(CalculatorStack *cs);
 
 
@@ -35,11 +76,15 @@ CalculatorStack CSInit()
 
 void CSDestroy(CalculatorStack *cs)
 {
+    if (cs->bottomHunk == NULL)
+        return;
     for (struct CSStackHunk *it = cs->bottomHunk; it != NULL;) {
         struct CSStackHunk *next_hunk = it->nextHunk;
         free(it);
         it = next_hunk;
     }
+    cs->topHunk = cs->bottomHunk = NULL;
+    cs->size = 0;
 }
 
 

@@ -1,32 +1,40 @@
+/** @file calculator_stack.h
+ * Struktura stosu kalkulatora odpowiedzialna za wykonywanie tych operacji.
+ */
 #include "poly.h"
 
 #ifndef WIELOMIANY_CALCULATOR_STACK_H
 #define WIELOMIANY_CALCULATOR_STACK_H
 
-#define CS_HUNK_SIZE 254
-
-
-struct CSStackHunk
-{
-    struct CSStackHunk *prevHunk;
-    struct CSStackHunk *nextHunk;
-    Poly data[CS_HUNK_SIZE];
-};
-
 
 /**
  * Struktura przechowująca dane stosu kalkulatora.
+ * Stos jest zbudowany ze stosu tablic, zawierajacych więcej niż jeden wielomian.
  */
 typedef struct {
+    ///Indeks pierwszego wolnego slotu w wierzchnim segmencie stosu
     uint32_t topHunkTop;
+
+    ///Liczba wszystkich elementów na stosie
     uint32_t size;
+
+    ///Argument dodatkowy dla operacji <c>OPERATION_DEG_BY</c>
     poly_exp_t peArg;
+
+    ///Argument dodatkowy dla operacji <c>OPERATION_AT</c>
     poly_coeff_t pcArg;
+
+    ///Wskaźnik na wierzchni segment stosu
     struct CSStackHunk *topHunk;
+
+    ///Wskaźnik na pierwszy segment stosu
     struct CSStackHunk *bottomHunk;
 } CalculatorStack;
 
 
+/**
+ * Wszystkie typy operacji, jakie potrafi wykonywać kalkulator.
+ */
 typedef enum {
     ///Zwracane przez <c>CSOperationFromString()</c>, kiedy podano niepoprawny napis
     OPERATION_INVALID,
@@ -75,23 +83,76 @@ typedef enum {
 } CSOperation;
 
 
+/**
+ * Konwertuje tekstowe polecenie dla kalkulatora na jego kod operacji.
+ * @param op_name tekstowe polecenia zapisane wielkimi literami ASCII oraz podkreślnikami
+ * @return kod operacji <c>CSOperation</c> odpowiadający danemu poleceniu tekstowemy; <c>OPERATION_INVALID</c> gdy
+ * polecenie jest niepoprawne
+ */
 CSOperation CSOperationFromString(const char *op_name);
 
+/**
+ * Inicjalizuje stos i allokuje mu pamięć.
+ * Wartosci <c>peArg</c> i <c>pcArg</c> nie są inicjowane. Stworzony stos należy potem zwolnić używając CSDestroy.
+ * @return Zainicjowana strukturę
+ */
 CalculatorStack CSInit();
 
+/**
+ * Zwalnia pamięć strukruty stosu.
+ * Bezpieczne jest wielokrotne wywoływanie tej funkcji na jednej instancji.
+ * @param cs struktura do usunięcia
+ */
 void CSDestroy(CalculatorStack *cs);
 
+/**
+ * Wpycha wielomian na stos.
+ * @param cs stos wielomianów
+ * @param poly wielomian wo wepchnięcia
+ */
 void CSPushPolynomial(CalculatorStack *cs, Poly poly);
 
+/**
+ * Sprawdza, czy na stosie jest wystarczająco wiele argumentów, aby wykonać żądaną ofrrację.
+ * Zawsze zwraca <c>false</c>, gdy żądana operacja to <c>OPERATION_INVALID</c> lub po prostu niepoprawny kod operacji.
+ * W pozostałych przypadkach wykonuje jedynie sprawdzenie, czy na stosie znajduje się wystarczająco wiele argumentów.
+ * Nie sprawdza jednak argumentów <c>CalculatorStack.peArg</c> oraz <c>CalculatorStack.pcArg</c> (czy zostały
+ * zainicjowane przed wykonaniem operacji).
+ * @param cs stos, na którym chcemy wykonać operację
+ * @param op kod operacji, którą chcemy wykonać
+ * @return
+ */
 bool CSCanExecute(CalculatorStack *cs, CSOperation op);
 
+/**
+ * Wykonuje operacje na stosie.
+ * Próba wykonania operacji, która nie może zostać wykonana, może zabić program <c>assert</c>em. Wielomianowe argumenty
+ * do operacji są brane z wierzchołka stosu. Dodatkowe argumenty dla operacji <c>AT</c> oraz <c>DEG_BY</c> powinny być
+ * zainicjowane przy użyciu odpowiednio <c>CSSetPCArg()</c> oraz <c>CSSetPEArg()</c>.
+ * @param cs stosk klakulatora
+ * @param op kod operacji
+ * @param out plik wyjściowy, potrzebny operacjom wypisującym dane (<c>OPERATION_IS_ZERO</c>, <c>OPERATION_IS_COEFF</c>,
+ * <c>OPERATION_IS_EQ</c>, <c>OPERATION_DEG</c>, <c>OPERATION_DEG_BY</c>, <c>OPERATION_PRINT</c>
+ */
 void CSExecute(CalculatorStack *cs, CSOperation op, FILE *out);
 
+/**
+ * Ustawia argument dla wszystkich kolejnych operacji <c>OPERATION_DEG_BY</c>.
+ * Wszystkie te operacje będą używały tego argumentu, az do kolejnego wywołania tej metody z inną wartoscią.
+ * @param cs struktura stosu
+ * @param arg wartosć argumentu
+ */
 static inline void CSSetPEArg(CalculatorStack *cs, poly_exp_t arg)
 {
     cs->peArg = arg;
 }
 
+/**
+ * Ustawia argument dla wszystkich kolejnych operacji <c>OPERATION_AT</c>.
+ * Wszystkie te operacje będą używały tego argumentu, az do kolejnego wywołania tej metody z inną wartoscią.
+ * @param cs struktura stosu
+ * @param arg wartosć argumentu
+ */
 static inline void CSSetPCArg(CalculatorStack *cs, poly_coeff_t arg)
 {
     cs->pcArg = arg;
