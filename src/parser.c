@@ -254,7 +254,7 @@ static bool ParsePolynomial(Parser *p, Poly *out)
         Mono *mono_array = malloc(mono_array_size * sizeof(Mono));
         assert(mono_array != NULL);
         Mono next;
-        int status = true;
+        bool status = true;
 
         do {
             if (!ParseMonomial(p, &next)) {

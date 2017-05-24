@@ -191,6 +191,8 @@ static void CSBinaryOperator(CalculatorStack *cs, Poly (*op)(const Poly *, const
     Poly larg = CSPopPolynomial(cs);
     Poly result = op(&rarg, &larg);
     CSPushPolynomial(cs, result);
+    PolyDestroy(&rarg);
+    PolyDestroy(&larg);
 }
 
 
@@ -241,6 +243,7 @@ void CSExecute(CalculatorStack *cs, CSOperation op, FILE *out) {
         case OPERATION_AT:
             p1 = CSPopPolynomial(cs);
             CSPushPolynomial(cs, PolyAt(&p1, cs->pcArg));
+            PolyDestroy(&p1);
             break;
         case OPERATION_PRINT:
             PolyPrint(CSTopPtr(cs), out);

@@ -36,7 +36,7 @@ int main(int argc, const char **argv)
 
     Parser parser = ParserInit();
     ParserPrepare(&parser, source, stdout);
-    if (ParserExecuteAll(&parser, true) != PARSE_SUCCESS)
+    if (!ParserExecuteAll(&parser, true))
         return EXITCODE_FILE_SYNTAX_ERROR;
     ParserDestroy(&parser);
     if (source != stdin)
