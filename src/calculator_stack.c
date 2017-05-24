@@ -78,11 +78,11 @@ void CSDestroy(CalculatorStack *cs)
 {
     if (cs->bottomHunk == NULL)
         return;
-    for (struct CSStackHunk *it = cs->bottomHunk; it != NULL;) {
-        struct CSStackHunk *next_hunk = it->nextHunk;
-        free(it);
-        it = next_hunk;
+    while (cs->size > 0) {
+        PolyDestroy(CSTopPtr(cs));
+        CSPopPolynomial(cs);
     }
+    free(cs->bottomHunk);
     cs->topHunk = cs->bottomHunk = NULL;
     cs->size = 0;
 }

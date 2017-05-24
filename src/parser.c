@@ -230,7 +230,7 @@ static int ParseMonomial(Parser *p, Mono *out)
 static int ParsePolynomial(Parser *p, Poly *out)
 {
     if (p->lexer.tokenBuffer[0] == '(') {
-        uint32_t mono_array_size = 256;
+        uint32_t mono_array_size = 2;
         uint32_t mono_array_top_ptr = 0;
         Mono *mono_array = malloc(mono_array_size * sizeof(Mono));
         assert(mono_array != NULL);
@@ -243,7 +243,7 @@ static int ParsePolynomial(Parser *p, Poly *out)
                 break;
             }
             if (mono_array_top_ptr == mono_array_size) {
-                Mono *temp = realloc(mono_array, mono_array_size * 2);
+                Mono *temp = realloc(mono_array, sizeof(Mono) * mono_array_size * 2);
                 assert(temp != NULL);
                 mono_array_size *= 2;
                 mono_array = temp;
@@ -293,7 +293,8 @@ static int ParseNextLine(Parser *p)
             PolyDestroy(&poly);
             return PARSE_FAILURE;
         }
-        CSPushPolynomial(&p->stack, poly);
+        if (feedback)
+            CSPushPolynomial(&p->stack, poly);
     }
 
     if (!feedback)
