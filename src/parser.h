@@ -5,17 +5,9 @@
 #define WIELOMIANY_PARSER_H
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "lexer.h"
 #include "calculator_stack.h"
-
-
-///Zwracane przez funkcje parsujące po udanym sparsowaniu. Kod: <c>if (PARSE_SUCCESS) { ... }</c> zostanie wykonany
-///(innymi słowy <c>PARSE_SUCCESS</c> to taki alias do <c>true</c>).
-#define PARSE_SUCCESS 1
-
-///Zwracane przez funkcje parsujące po nieudanym sparsowaniu. Kod: <c>if (PARSE_FAILURE) { ... }</c> nie zostanie
-///wykonany (innymi słowy <c>PARSE_FAILURE</c> to taki alias do <c>false</c>).
-#define PARSE_FAILURE 0
 
 
 /**
@@ -55,7 +47,6 @@ Parser ParserInit(void);
  */
 void ParserDestroy(Parser *parser);
 
-
 /**
  * Przygotowuje parser do pracy z kolejnym plikiem.
  * Jeden parser może pracowac z wieloma plikami, ale nie jednocześnie. Parser nie zamyka plików podanych tutaj jako
@@ -71,9 +62,11 @@ void ParserPrepare(Parser *parser, FILE *source, FILE *output);
  * Oczywiscie należy to wywołać po uprzednim wywołaniu <c>ParserPrepare()</c>. Nizastosowanie się do tego nie musi się
  * dobrze skończyć.
  * @param parser parser wykonując polecenia
- * @return <c>PARSE_SUCCESS</c> kiedy cały plik został pomyślnie sparsowany i wykonany; <c>PARSE_FAILURE</c> w.p.p.
+ * @param error_resume_next jeżeli ustawione na false, funkcja zakończy wykonanie po napotkaniu błędu składniowego
+ * w przeciwnym razie, po błędzie parsowanie odbywa sie dalej normalnie od kolejnego wiersza
+ * @return <c>true</c> kiedy cały plik został pomyślnie sparsowany i wykonany; <c>false</c> w.p.p.
  */
-int ParserExecuteAll(Parser *parser, bool error_resume_next);
+bool ParserExecuteAll(Parser *parser, bool error_resume_next);
 
 
 #endif //WIELOMIANY_PARSER_H
