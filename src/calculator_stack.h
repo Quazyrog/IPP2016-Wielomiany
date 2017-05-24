@@ -28,6 +28,9 @@ typedef struct {
 
 
 typedef enum {
+    ///Zwracane przez <c>CSOperationFromString()</c>, kiedy podano niepoprawny napis
+    OPERATION_INVALID,
+
     ///Wstawia na wierzchołek stosu wielomian tożsamościowo równy zeru
     OPERATION_ZERO,
 
@@ -82,7 +85,7 @@ void CSPushPolynomial(CalculatorStack *cs, Poly poly);
 
 bool CSCanExecute(CalculatorStack *cs, CSOperation op);
 
-void CSExecute(CalculatorStack *cs, CSOperation op);
+void CSExecute(CalculatorStack *cs, CSOperation op, FILE *out);
 
 static inline void CSSetPEArg(CalculatorStack *cs, poly_exp_t arg)
 {
