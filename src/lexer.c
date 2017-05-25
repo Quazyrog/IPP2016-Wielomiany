@@ -62,17 +62,23 @@ void LexerReadNextToken(Lexer *scanner)
     if (scanner->nextChar == 0)
         scanner->nextChar = fgetc(scanner->input);
     scanner->tokenType = LSCharacterTokenType(scanner->nextChar);
+    scanner->skippedZeros = 0;
 
     int length = 0;
     do {
-        scanner->tokenBuffer[length] = scanner->nextChar;
-        ++length;
-        if (length == LEXER_TOKEN_BUFFER_SIZE) {
-            scanner->tokenType = TOKEN_INVALID_OVERFLOW;
-            scanner->tokenBuffer[0] = 0;
-            return;
+        if (length == 1 && scanner->tokenType == TOKEN_NUMBER && scanner->tokenBuffer[0] == '0') {
+            scanner->tokenBuffer[0] = scanner->nextChar;
+            ++scanner->skippedZeros;
+        } else {
+            scanner->tokenBuffer[length] = scanner->nextChar;
+            ++length;
+            if (length == LEXER_TOKEN_BUFFER_SIZE) {
+                scanner->tokenType = TOKEN_INVALID_OVERFLOW;
+                scanner->tokenBuffer[LEXER_TOKEN_BUFFER_SIZE - 1] = 0;
+                return;
+            }
+            ++scanner->column;
         }
-        ++scanner->column;
 
         if (scanner->nextChar == '\n') {
             ++scanner->line;

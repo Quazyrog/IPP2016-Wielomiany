@@ -62,6 +62,9 @@ typedef struct
     /// w taki sposób przechowany. Zaraz po rozpoczęciu pracy z plikiem ustawiony na 0)
     char nextChar;
 
+    ///Liczba pominiętych zer wiodących, dla tokenu liczbowego
+    uint32_t skippedZeros;
+
     ///Linia, z której został przeczytany ostatni znak (ten przechowywany w <c>nextChar</c>)
     uint32_t line;
     ///Kolumna, z której został przeczytany ostatni znak (ten przechowywany w <c>nextChar</c>)
@@ -96,7 +99,7 @@ void LexerInit(Lexer *scanner, FILE *file);
  * Wczytuje do bufora leksera kolejny token z pliku wejściowego.
  * Kiedy lekser napotkał juz koniec pliku, nie jest modyfikowany i funkcja kończy działanie. W przypadku, gdy token
  * okaże się zbyt długi do umieszczenia w buforze, bufor zostanie wyzerowany (pierwszy znak), a typ odczytanego tokenu
- * ustawiony na <c>TOKEN_INVALID_OVERFLOW</c>.
+ * ustawiony na <c>TOKEN_INVALID_OVERFLOW</c>. Pomija wiodące zera, jeżeli jest ich więcej niż 1.
  * @param scanner struktura przechowująca stan leksera
  */
 void LexerReadNextToken(Lexer *scanner);

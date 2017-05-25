@@ -9,6 +9,7 @@
  *     składniowej
  *   - Jeżeli parsowanie nie powiedzie się, wczytanym do leksera tokenem będzie token, który spowodował błąd.
  */
+#include <ctype.h>
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
@@ -56,7 +57,7 @@ static bool ParseCoefficient(Parser *p, poly_coeff_t *out, uint32_t *invalid_dig
 
     if (p->lexer.tokenType != TOKEN_NUMBER) {
         if (invalid_digit != NULL)
-            *invalid_digit = 0;
+            *invalid_digit = 0 + p->lexer.skippedZeros;
         return false;
     }
     const char *digits = p->lexer.tokenBuffer;
@@ -69,14 +70,14 @@ static bool ParseCoefficient(Parser *p, poly_coeff_t *out, uint32_t *invalid_dig
         new_value = value * 10;
         if (new_value / 10 != value || (new_value < 0 && value > 0) || (new_value > 0 && value < 0)) {
             if (invalid_digit != NULL)
-                *invalid_digit = next_digit;
+                *invalid_digit = next_digit + p->lexer.skippedZeros;
             return false;
         }
 
         new_value = new_value + sgn * digit;
         if ((new_value < 0 && value > 0) || (new_value > 0 && value < 0)) {
             if (invalid_digit != NULL)
-                *invalid_digit = next_digit;
+                *invalid_digit = next_digit + p->lexer.skippedZeros;
             return false;
         }
 
@@ -171,6 +172,10 @@ static bool ParseAndPushDegByParameter(Parser *p)
 static bool ParseCommand(Parser *p)
 {
     CSOperation op_code;
+    if (p->lexer.tokenType == TOKEN_INVALID_OVERFLOW) {
+        fprintf(stderr, "ERROR %u WRONG COMMAND\n", (unsigned int)p->lexer.startLine);
+        return false;
+    }
 
     if (strcmp(p->lexer.tokenBuffer, "AT") == 0) {
         poly_coeff_t arg = 0;
@@ -302,7 +307,7 @@ static bool ParsePolynomial(Parser *p, Poly *out)
 static bool ParseNextLine(Parser *p)
 {
     int feedback;
-    if (p->lexer.tokenType == TOKEN_COMMAND) {
+    if (isalpha(p->lexer.tokenBuffer[0])) {
         feedback = ParseCommand(p);
     } else {
         Poly poly;
