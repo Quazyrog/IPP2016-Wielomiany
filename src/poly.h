@@ -165,6 +165,18 @@ Poly PolyAt(const Poly *p, poly_coeff_t x);
 void PolyScaleInplace(Poly *p, poly_coeff_t scalar);
 
 /**
+ * Zwraca wielomian \f$ p \f$ po serii podstawień w postaci \f$ x_i = \text{vars_subs[i]} \f$.
+ * Jeśli liczba elementów <c>vars_subs</c> jest mniejsza od liczby zmiennych wielomianu, to zmienne o indeksach
+ * większych lub równych liczbie zdefiniowanych podstawień są zamieniane na 0.
+ * @param p wielomian, w którym podstawiamy zmienne
+ * @param vars_subs_count liczba elementów tablicy <c>vars_subs</c>
+ * @param tablica z podstawieniami dla kolejnych zmiennych
+ * @return wielomian \f$ p \left( \text{vars_subs[0]} \right) \dots \left( \text{vars_subs[vars_subs_count]} \right)
+ * \left( 0 \right) \dots \f$
+ */
+Poly PolyCompose(const Poly *p, poly_exp_t vars_subs_count, const Poly *vars_subs);
+
+/**
  * Wypisuje wielomian do podanego w argumencie strumienia.
  * Wypisany wielomian jest zgodny ze specyfikacją zadania, tj:
  *   - Wielomian-współczynnik jest wypisany jako liczba

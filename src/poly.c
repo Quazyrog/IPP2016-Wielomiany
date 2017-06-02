@@ -42,6 +42,7 @@ static Poly PolySimplifyCoeff(Poly p)
     return p;
 }
 
+
 /**
  * Oblicz liczbę jednomianów w \f$ p + q \f$
  * @param p pierwszy sumy wielomian
@@ -68,6 +69,7 @@ static inline poly_exp_t CountSumLength(const Poly *p, const Poly *q)
 
     return sum_length + (p->length - i) + (q->length - j);
 }
+
 
 /**
  * Oblicz \f$ p + q \f$ zakładając, że tylko <c>q</c> jest współczynnikiem.
@@ -107,6 +109,7 @@ static inline Poly PolyAddPC(const Poly *p, const Poly *q)
     return result;
 #endif
 }
+
 
 /**
  * Oblicz \f$ p + q \f$ zakładając, że żąden z nich nie jest współczynnikiem.
@@ -152,6 +155,7 @@ static inline Poly PolyAddPP(const Poly *p, const Poly *q)
     return PolySimplifyCoeff(result);
 }
 
+
 /**
  * Ogonowa implementacja szybkiego potęgowania dla wykładników większych od 0.
  * @param base baza potęgi
@@ -168,6 +172,7 @@ static poly_coeff_t QuickPowerTail(poly_coeff_t base, poly_exp_t exponent, poly_
     return QuickPowerTail(base * base, exponent / 2, accumulator * base);
 }
 
+
 /**
  * Implementacja szybkiego potęgowania.
  * Ta funkcja wewnętrznie odwołuje się do QuickPowerTail(), po sprawdzeniu, czy <c>exponent >= 0</c>.
@@ -180,6 +185,7 @@ static inline poly_coeff_t QuickPower(poly_coeff_t base, poly_exp_t exponent)
     assert(exponent >= 0);
     return QuickPowerTail(base, exponent, 1);
 }
+
 
 void PolyScaleInplace(Poly *p, poly_coeff_t scalar)
 {
@@ -194,6 +200,7 @@ void PolyScaleInplace(Poly *p, poly_coeff_t scalar)
             PolyScaleInplace(&p->monos[i].p, scalar);
     }
 }
+
 
 /**
  * Zwraca wielomian-nie-współczynnik pomnożony przez jednomian.
@@ -225,6 +232,7 @@ static Poly PolyMulM(const Poly *p, const Mono *q)
     return result;
 #endif
 }
+
 
 /**
  * Scal dwie tablice posortowanych jednomianów do w tablicy wynikowej.
@@ -258,6 +266,7 @@ static void PolyMergeSortedMonos(Mono *in1, Mono *in2, Mono *out, int len1, int 
     //Zgodnie z założeniami, jeśli in2 się nie skończyło, to i tak jest już na swoim miejscu
 }
 
+
 /**
  * Sortuje tablicę jednomianów niemalejąco według ich wykładnika.
  * Jednomiany o tych samych wykładnikach nie są scalane.
@@ -282,6 +291,7 @@ static void PolySortMonos(Mono *monos, poly_exp_t length)
     PolyMergeSortedMonos(sub1, sub2, monos, len1, len2);
     free(sub1);
 }
+
 
 /**
  * Tworzy wielomian zbudowany z sumy jednomianów podanych w tablicy.
@@ -317,6 +327,7 @@ static Poly PolyFromMonos(Mono *monos, poly_exp_t length)
     return PolySimplifyCoeff(p);
 }
 
+
 void PolyDestroy(Poly *p)
 {
     if (p->monos != NULL) {
@@ -325,6 +336,7 @@ void PolyDestroy(Poly *p)
         free(p->monos);
     }
 }
+
 
 Poly PolyAdd(const Poly *p, const Poly *q)
 {
@@ -341,6 +353,7 @@ Poly PolyAdd(const Poly *p, const Poly *q)
         return PolyAddPC(q, p);
     return PolyAddPP(p, q);
 }
+
 
 Poly PolyMul(const Poly *p, const Poly *q)
 {
@@ -371,6 +384,7 @@ Poly PolyMul(const Poly *p, const Poly *q)
     return PolySimplifyCoeff(fold);
 }
 
+
 Poly PolyAddMonos(unsigned count, const Mono *monos)
 {
     Mono *m_copy = malloc(sizeof(Mono) * count);
@@ -380,6 +394,7 @@ Poly PolyAddMonos(unsigned count, const Mono *monos)
     return PolyFromMonos(m_copy, count);
 }
 
+
 Poly PolyAddCopiedMonos(unsigned count, const Mono *monos)
 {
     Mono *m_copy = malloc(sizeof(Mono) * count);
@@ -388,6 +403,7 @@ Poly PolyAddCopiedMonos(unsigned count, const Mono *monos)
         m_copy[i] = MonoClone(monos + i);
     return PolyFromMonos(m_copy, count);
 }
+
 
 Poly PolyClone(const Poly *p)
 {
@@ -404,6 +420,7 @@ Poly PolyClone(const Poly *p)
     }
     return result;
 }
+
 
 Poly PolyNeg(const Poly *p)
 {
@@ -423,6 +440,7 @@ Poly PolyNeg(const Poly *p)
     return result;
 }
 
+
 Poly PolySub(const Poly *p, const Poly *q)
 {
     Poly q_neg = PolyNeg(q);
@@ -430,6 +448,7 @@ Poly PolySub(const Poly *p, const Poly *q)
     PolyDestroy(&q_neg);
     return PolySimplifyCoeff(result);
 }
+
 
 poly_exp_t PolyDegBy(const Poly *p, unsigned var_idx)
 {
@@ -454,6 +473,7 @@ poly_exp_t PolyDegBy(const Poly *p, unsigned var_idx)
     return max;
 }
 
+
 poly_exp_t PolyDeg(const Poly *p)
 {
     if (PolyIsZero(p))
@@ -471,6 +491,7 @@ poly_exp_t PolyDeg(const Poly *p)
 
     return max;
 }
+
 
 /**
  * Porównuje wielomian is współczynnik.
@@ -494,6 +515,7 @@ static bool PolyIsEqPC(const Poly *p, const Poly *q)
     }
     return true;
 }
+
 
 bool PolyIsEq(const Poly *p, const Poly *q)
 {
@@ -532,6 +554,7 @@ bool PolyIsEq(const Poly *p, const Poly *q)
 
     return true;
 }
+
 
 Poly PolyAt(const Poly *p, poly_coeff_t x)
 {
@@ -575,3 +598,79 @@ void PolyPrint(const Poly *p, FILE *stream)
     }
 }
 
+
+/**
+ * Szybkie potęgowanie wielomianów.
+ * Dla podanego wielomianu \f$ p \f$ zwraca \f$ p^\text{exp} \f$. Implementacja nie jest ogonowa, gdyż nie
+ * i tak potrzebujemy dużo pamięci na wynik.
+ * @param p potęgowany wielomian
+ * @param exp wykładnik (człkowity, nieujemny)
+ * @return wielomian \f$ p^\text{exp} \f$
+ */
+static Poly PolyQuickPower(const Poly *p, poly_exp_t exp)
+{
+    assert(exp >= 0);
+    if (PolyIsZero(p))
+        return PolyZero();
+    if (exp == 0)
+        return PolyFromCoeff(1);
+    if (exp == 1)
+        return PolyClone(p);
+
+    Poly root = PolyQuickPower(p, exp / 2);
+    Poly result;
+    if (exp % 2 == 0) {
+        result = PolyMul(&root, &root);
+    } else {
+        Poly half_result = PolyMul(&root, &root);
+        result = PolyMul(&half_result, p);
+        PolyDestroy(&half_result);
+    }
+    PolyDestroy(&root);
+    return result;
+}
+
+
+/**
+ * Zwraca wyraz wolny wielomianu.
+ * Zwrócony wielomian jest współczynnikiem. Moze zostać zniszczony (wywołujący dostaje go na własność: wielomian
+ * jest alokowany przez tę funkcję).
+ * @param p odpytywany wielmian
+ * @return wyraz wolny wielomianu \f$ p \f$
+ */
+static Poly ExactCoefficient(const Poly *p)
+{
+    if (PolyIsCoeff(p))
+        return PolyClone(p);
+    if (p->monos[0].exp == 0)
+        return ExactCoefficient(&p->monos[0].p);
+    return PolyZero();
+}
+
+
+Poly PolyCompose(const Poly *p, poly_exp_t vars_subs_count, const Poly *vars_subs)
+{
+    if (PolyIsCoeff(p))
+        return PolyClone(p);
+    if (vars_subs_count == 0)
+        return ExactCoefficient(p);
+
+    Poly result = PolyZero();
+    for (poly_exp_t i = 0; i < p->length; ++i) {
+        Poly composed_coef = PolyCompose(&p->monos[i].p, vars_subs_count - 1, vars_subs + 1);
+
+        if (!PolyIsZero(&composed_coef)) {
+            Poly cpow = PolyQuickPower(vars_subs + 0, p->monos[i].exp);
+            Poly composed_mono = PolyMul(&cpow, &composed_coef);
+            Poly new_result = PolyAdd(&result, &composed_mono);
+            PolyDestroy(&cpow);
+            PolyDestroy(&composed_mono);
+            PolyDestroy(&result);
+            result = new_result;
+        }
+
+        PolyDestroy(&composed_coef);
+    }
+
+    return result;
+}
