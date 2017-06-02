@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <limits.h>
 #include "calculator_stack.h"
 
 ///Rozmiar alokacji pojedynczego segmentu stosu (w liczbie wielomianów)
@@ -48,6 +49,13 @@ static Poly *CSTopPtr(CalculatorStack *cs);
  * @return wielomian z wierzchołka stosu
  */
 static Poly CSPopPolynomial(CalculatorStack *cs);
+
+
+/**
+ * Wykonuje operacje compose.
+ * @param cs stos kalkulatora
+ */
+static void CSExecuteCompose(CalculatorStack *cs);
 
 
 
@@ -147,6 +155,8 @@ bool CSCanExecute(CalculatorStack *cs, CSOperation op)
         case OPERATION_SUB:
         case OPERATION_IS_EQ:
             return cs->size > 1;
+        case OPERATION_COMPOSE:
+            return cs->uiArg < UINT_MAX && cs->uiArg + 1 < cs->size;
     }
     return false;
 }
@@ -181,6 +191,8 @@ CSOperation CSOperationFromString(const char *op_name) {
         return OPERATION_SUB;
     if (strcmp(op_name, "IS_EQ") == 0)
         return OPERATION_IS_EQ;
+    if (strcmp(op_name, "COMPOSE") == 0)
+        return OPERATION_COMPOSE;
     return OPERATION_INVALID;
 }
 
@@ -193,6 +205,23 @@ static void CSBinaryOperator(CalculatorStack *cs, Poly (*op)(const Poly *, const
     CSPushPolynomial(cs, result);
     PolyDestroy(&rarg);
     PolyDestroy(&larg);
+}
+
+
+static void CSExecuteCompose(CalculatorStack *cs)
+{
+    Poly *subs = malloc(cs->uiArg * sizeof(Poly));
+    assert(subs != 0);
+    Poly main_arg = CSPopPolynomial(cs);
+    for (unsigned int i = 0; i < cs->uiArg; ++i)
+        subs[i] = CSPopPolynomial(cs);
+
+    CSPushPolynomial(cs, PolyCompose(&main_arg, cs->uiArg, subs));
+
+    PolyDestroy(&main_arg);
+    for (unsigned int i = 0; i < cs->uiArg; ++i)
+        PolyDestroy(subs + i);
+    free(subs);
 }
 
 
@@ -252,6 +281,9 @@ void CSExecute(CalculatorStack *cs, CSOperation op, FILE *out) {
         case OPERATION_POP:
             PolyDestroy(CSTopPtr(cs));
             CSPopPolynomial(cs);
+            break;
+        case OPERATION_COMPOSE:
+            CSExecuteCompose(cs);
             break;
     }
 }

@@ -18,7 +18,7 @@ typedef struct {
     ///Liczba wszystkich elementów na stosie
     uint32_t size;
 
-    ///Argument dodatkowy dla operacji <c>OPERATION_DEG_BY</c>
+    ///Argument dodatkowy dla operacji <c>OPERATION_DEG_BY</c> oraz <c>OPERATION_COMPOSE</c>
     unsigned int uiArg;
 
     ///Argument dodatkowy dla operacji <c>OPERATION_AT</c>
@@ -80,6 +80,9 @@ typedef enum {
 
     ///Usuwa wielomian z wierzchołka stosu
     OPERATION_POP,
+
+    ///Składa wielomiany metodą PolyCompose
+    OPERATION_COMPOSE,
 } CSOperation;
 
 
