@@ -156,7 +156,7 @@ bool CSCanExecute(CalculatorStack *cs, CSOperation op)
         case OPERATION_IS_EQ:
             return cs->size > 1;
         case OPERATION_COMPOSE:
-            return cs->uiArg < UINT_MAX && cs->uiArg + 1 < cs->size;
+            return cs->uiArg < UINT_MAX && cs->uiArg + 1 <= cs->size;
     }
     return false;
 }
