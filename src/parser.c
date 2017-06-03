@@ -18,6 +18,7 @@
 #include "parser.h"
 #include "poly.h"
 #include "lexer.h"
+#include "calculator_stack.h"
 
 
 /**
@@ -140,21 +141,20 @@ static bool ParseExponent(Parser *p, poly_exp_t *out, uint32_t *invalid_digit)
 
 
 /**
- * Patarsuje i ustawia na stosie operacji argument polecenia <c>DEG_BY</c>.
+ * Patarsuje i ustawia na stosie operacji argument typu <c>unsigned int</c>.
  * @param p struktura parsera
  * @return feedback parsowania
  */
-static bool ParseAndPushDegByParameter(Parser *p)
+static bool ParseAndPushUIntParameter(Parser *p, const char *error_message)
 {
-    LexerReadNextToken(&p->lexer);
     if (!LexerExpectChar(&p->lexer, ' ') || p->lexer.tokenType != TOKEN_NUMBER) {
-        fprintf(stderr, "ERROR %u WRONG VARIABLE\n", (unsigned int)p->lexer.startLine);
+        fprintf(stderr, "ERROR %u %s\n", (unsigned int)p->lexer.startLine, error_message);
         return false;
     }
     long unsigned int arg = strtoul(p->lexer.tokenBuffer, NULL, 10);
     LexerReadNextToken(&p->lexer);
     if (errno == ERANGE || arg > UINT_MAX || p->lexer.tokenBuffer[0] != '\n') {
-        fprintf(stderr, "ERROR %u WRONG VARIABLE\n", (unsigned int)p->lexer.startLine);
+        fprintf(stderr, "ERROR %u %s\n", (unsigned int)p->lexer.startLine, error_message);
         return false;
     }
     CSSetUIArg(&p->stack, (unsigned int)arg);
@@ -177,22 +177,20 @@ static bool ParseCommand(Parser *p)
         return false;
     }
 
-    if (strcmp(p->lexer.tokenBuffer, "AT") == 0) {
+    op_code = CSOperationFromString(p->lexer.tokenBuffer);
+    LexerReadNextToken(&p->lexer);
+
+    if (op_code == OPERATION_AT) {
         poly_coeff_t arg = 0;
-        LexerReadNextToken(&p->lexer);
         if (!LexerExpectChar(&p->lexer, ' ') || !ParseCoefficient(p, &arg, NULL) || p->lexer.tokenBuffer[0] != '\n') {
             fprintf(stderr, "ERROR %u WRONG VALUE\n", (unsigned int)p->lexer.startLine);
             return false;
         }
         CSSetPCArg(&p->stack, arg);
-        op_code = OPERATION_AT;
-    } else if (strcmp(p->lexer.tokenBuffer, "DEG_BY") == 0) {
-        if (!ParseAndPushDegByParameter(p))
+    } else if (op_code == OPERATION_DEG_BY || op_code == OPERATION_COMPOSE) {
+        if (!ParseAndPushUIntParameter(p, op_code == OPERATION_DEG_BY ? "WRONG VARIABLE" : "WRONG COUNT"))
             return false;
-        op_code = OPERATION_DEG_BY;
     } else {
-        op_code = CSOperationFromString(p->lexer.tokenBuffer);
-        LexerReadNextToken(&p->lexer);
         if (op_code == OPERATION_INVALID || p->lexer.tokenBuffer[0] != '\n') {
             fprintf(stderr, "ERROR %u WRONG COMMAND\n", (unsigned int)p->lexer.startLine);
             return false;
