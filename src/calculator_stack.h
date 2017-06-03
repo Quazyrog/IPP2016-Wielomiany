@@ -69,10 +69,15 @@ typedef enum {
     ///Wypisuje na standardowe wyjście stopień wielomianu (−1 dla wielomianu tożsamościowo równego zeru)
     OPERATION_DEG,
 
-    ///Wypisuje na standardowe wyjście stopień wielomianu ze względu na zmienną o numerze idx (−1 dla wielomianu tożsamościowo równego zeru)
+    ///Wypisuje na standardowe wyjście stopień wielomianu ze względu na zmienną o numerze idx
+    ///(−1 dla wielomianu tożsamościowo równego zeru); wymaga ustawienia wartości odpowiedniego parametru
+    ///typu <c>unsigned int</c>
+    ///@see CSSetUIArg()
     OPERATION_DEG_BY,
 
-    ///Wylicza wartość wielomianu w punkcie x, usuwa wielomian z wierzchołka i wstawia na stos wynik operacji
+    ///Wylicza wartość wielomianu w punkcie x, usuwa wielomian z wierzchołka i wstawia na stos wynik operacji;
+    ///wymaga ustawienia wartości odpowiedniego parametru typu <c>poly_coeff_t</c>
+    ///@see CSSetPCArg()
     OPERATION_AT,
 
     ///Wypisuje na standardowe wyjście wielomian z wierzchołka stosu w formacie akceptowanym przez parser
@@ -81,7 +86,8 @@ typedef enum {
     ///Usuwa wielomian z wierzchołka stosu
     OPERATION_POP,
 
-    ///Składa wielomiany metodą PolyCompose
+    ///Składa wielomiany metodą PolyCompose; wymaga ustawienia wartości odpowiedniego oapametru
+    ///@see CSSetUIArg()
     OPERATION_COMPOSE,
 } CSOperation;
 
@@ -140,7 +146,7 @@ bool CSCanExecute(CalculatorStack *cs, CSOperation op);
 void CSExecute(CalculatorStack *cs, CSOperation op, FILE *out);
 
 /**
- * Ustawia argument dla wszystkich kolejnych operacji <c>OPERATION_DEG_BY</c>.
+ * Ustawia dodatkowy argument dla wszystkich kolejnych operacji <c>OPERATION_DEG_BY</c> oraz <c>OPERATION_COMPOSE</c>.
  * Wszystkie te operacje będą używały tego argumentu, az do kolejnego wywołania tej metody z inną wartoscią.
  * @param cs struktura stosu
  * @param arg wartosć argumentu
