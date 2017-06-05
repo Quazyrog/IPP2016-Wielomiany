@@ -36,17 +36,48 @@ typedef struct
 } MockOutputBuffer;
 
 
-///Tablica atrap strumieni wejściowych (można mieć jednocześnie kilka: na stdout, stderr itd)
-static MockOutputBuffer *MockFiles = NULL;
+/**
+ * Atrapa strumienia wejściowego.
+ */
+typedef struct
+{
+    ///Strumień, którego atrapuje bufor
+    FILE *stream;
+
+    ///Wskaźnik na początek wejścia
+    const char const *input;
+
+    ///Ostatni znak
+    const char const *end;
+
+    ///Bierząca pozycja na wejściu
+    const char *pos;
+} MockInputBuffer;
+
+
+///Tablica atrap strumieni wyjściowych (można mieć jednocześnie kilka: na stdout, stderr itd)
+static MockOutputBuffer *MockOutputs = NULL;
 
 ///Liczba utworzonych atrap strumieni wyjściowych
-static unsigned int MockFilesCounter = 0;
+static unsigned int MockOutputsCounter = 0;
 
 ///Rozmiar alokacji tablicy <c>MockFiles</c>
-static unsigned int MockFilesAllocated = 0;
+static unsigned int MockOutputsAllocated = 0;
 
 ///Czy wypisano coś na inny strumień?
-static bool WrongStreamTouched = false;
+static bool WrongInputTouched = false;
+
+///Tablica atrap strumieni wejściowych (można mieć jednocześnie kilka: na stdout, stderr itd)
+static MockInputBuffer *MockInputs = NULL;
+
+///Liczba utworzonych atrap strumieni wejściowych
+static unsigned int MockInputsCounter = 0;
+
+///Rozmiar alokacji tablicy <c>MockInputs</c>
+static unsigned int MockInputsAllocated = 0;
+
+///Czy wczytano coś z innego strumienia?
+static bool WrongOutputTouched = false;
 
 
 /**
@@ -63,9 +94,9 @@ int mock_fprintf(FILE *stream, const char *format, ...)
 {
     //Znajdź właściwy bufor
     MockOutputBuffer *out = NULL;
-    for (unsigned int i = 0; i < MockFilesCounter; ++i) {
-        if (MockFiles[i].stream == stream) {
-            out = MockFiles + i;
+    for (unsigned int i = 0; i < MockOutputsCounter; ++i) {
+        if (MockOutputs[i].stream == stream) {
+            out = MockOutputs + i;
             break;
         }
     }
@@ -73,11 +104,12 @@ int mock_fprintf(FILE *stream, const char *format, ...)
     va_list args;
     va_start(args, format);
     if (out == NULL) {
-        WrongStreamTouched = true;
-        return vfprintf(stream, format, args);
+        WrongInputTouched = true;
+        if (stream)
+            return vfprintf(stream, format, args);
+        return 0;
     }
 
-    assert_true(out->expected != NULL);
     int result = vsnprintf(out->outputBuffer + out->outputOffset, out->length - out->outputOffset, format, args);
     va_end(args);
 
@@ -85,6 +117,65 @@ int mock_fprintf(FILE *stream, const char *format, ...)
         out->outputOffset += result;
     out->overflow = out->overflow || out->outputOffset >= out->length;
     return result;
+}
+
+
+/**
+ * Atrapuje <c>fputc</c>
+ */
+int mock_fputc(int c, FILE *stream)
+{
+    //Znajdź właściwy bufor
+    MockOutputBuffer *out = NULL;
+    for (unsigned int i = 0; i < MockOutputsCounter; ++i) {
+        if (MockOutputs[i].stream == stream) {
+            out = MockOutputs + i;
+            break;
+        }
+    }
+
+    if (out == NULL) {
+        WrongInputTouched = true;
+        if (stream)
+            return fputc(c, stream);
+        return EOF;
+    }
+
+    if (out->outputOffset + 1 >= out->length) {
+        out->overflow = true;
+        return EOF;
+    }
+
+    out->outputBuffer[out->outputOffset++] = (char)c;
+    out->outputBuffer[out->outputOffset] = 0;
+    return c;
+}
+
+
+/**
+ * Atrapuje <c>fgetc</c>
+ */
+int mock_fgetc(FILE *stream)
+{
+    MockInputBuffer *in = NULL;
+    for (unsigned int i = 0; i < MockInputsCounter; ++i) {
+        if (MockInputs[i].stream == stream) {
+            in = MockInputs + i;
+            break;
+        }
+    }
+
+    if (in == NULL) {
+        WrongOutputTouched = true;
+        if (stream)
+            return fgetc(stream);
+        return EOF;
+    }
+
+    assert_true(in->pos <= in->end);
+    if (in->pos == in->end)
+        return EOF;
+    return *(in->pos++);
 }
 
 
@@ -104,11 +195,34 @@ static void ExpectOutput(FILE *stream, const char *expect)
     next.outputOffset = 0;
     next.overflow = false;
 
-    if (MockFilesAllocated == MockFilesCounter) {
-        MockFilesAllocated = MockFilesAllocated == 0 ? 1 : 2 * MockFilesAllocated;
-        MockFiles = realloc(MockFiles, MockFilesAllocated * sizeof(MockOutputBuffer));
+    if (MockOutputsAllocated == MockOutputsCounter) {
+        MockOutputsAllocated = MockOutputsAllocated == 0 ? 1 : 2 * MockOutputsAllocated;
+        MockOutputs = realloc(MockOutputs, MockOutputsAllocated * sizeof(MockOutputBuffer));
     }
-    MockFiles[MockFilesCounter++] = next;
+    MockOutputs[MockOutputsCounter++] = next;
+}
+
+
+/**
+ * Przygotowuje atrapę strumnienia wejściowego.
+ * @param stream strumień wejściowy
+ * @param input dane wejściowe
+ * @param length długość danych wejściowych
+ */
+static void FeedInput(FILE *stream, const char const *input, unsigned int length)
+{
+    MockInputBuffer next = (MockInputBuffer) {
+            .stream = stream,
+            .input = input,
+            .pos = input,
+            .end = input + length,
+    };
+
+    if (MockInputsAllocated == MockInputsCounter) {
+        MockInputsAllocated = MockInputsAllocated == 0 ? 1 : 2 * MockInputsAllocated;
+        MockInputs = realloc(MockInputs, MockInputsAllocated * sizeof(MockOutputBuffer));
+    }
+    MockInputs[MockInputsCounter++] = next;
 }
 
 
@@ -120,9 +234,10 @@ static void ExpectOutput(FILE *stream, const char *expect)
  */
 static bool CheckOutput(bool ignore_other)
 {
-    bool check = !WrongStreamTouched || ignore_other;
-    for (unsigned int i = 0; i < MockFilesCounter; ++i) {
-        MockOutputBuffer next = MockFiles[i];
+    bool check = (!WrongInputTouched || ignore_other) && (!WrongOutputTouched || ignore_other);
+
+    for (unsigned int i = 0; i < MockOutputsCounter; ++i) {
+        MockOutputBuffer next = MockOutputs[i];
         check = check && !next.overflow && memcmp(next.expected, next.outputBuffer, next.length) == 0;
 //        printf("\n{%s}{%s}\n", next.expected, next.outputBuffer);
         next.expected = NULL;
@@ -132,11 +247,19 @@ static bool CheckOutput(bool ignore_other)
         next.outputOffset = 0;
         next.overflow = false;
     }
-    free(MockFiles);
-    MockFiles = NULL;
-    MockFilesCounter = 0;
-    MockFilesAllocated = 0;
-    WrongStreamTouched = false;
+
+    free(MockOutputs);
+    MockOutputs = NULL;
+    MockOutputsCounter = 0;
+    MockOutputsAllocated = 0;
+    WrongOutputTouched = false;
+
+    free(MockInputs);
+    MockInputs = NULL;
+    MockInputsCounter = 0;
+    MockInputsAllocated = 0;
+    WrongInputTouched = false;
+
     return check;
 }
 
@@ -211,12 +334,41 @@ static void TestMocksManyStreams(void **state)
 
     ExpectOutput(stdout, "HELLO!");
     mock_fprintf(stdout, "HELLO!");
-    mock_fprintf(stderr, "NO ERROR");
+    mock_fprintf(NULL, "NO ERROR");
     assert_true(CheckOutput(true));
 
     ExpectOutput(stdout, "HELLO!");
     mock_fprintf(stdout, "HELLO!");
-    mock_fprintf(stderr, "NO ERROR");
+    mock_fprintf(NULL, "NO ERROR");
+    assert_false(CheckOutput(false));
+}
+
+
+/**
+ * Cat do testowania atrap.
+ */
+static void MainCat()
+{
+    int c;
+    while ((c = mock_fgetc(stdin)) != EOF) {
+        mock_fputc(c, stdout);
+//        printf("[%i]", c);
+    }
+}
+
+
+static void TestMocksCat(void **state)
+{
+    (void)state;
+
+    ExpectOutput(stdout, "ABC");
+    FeedInput(stdin, "ABC", 3);
+    MainCat();
+    assert_true(CheckOutput(false));
+
+    ExpectOutput(stdout, "ABC");
+    FeedInput(stdin, "ABCA", 4);
+    MainCat();
     assert_false(CheckOutput(false));
 }
 
@@ -229,6 +381,7 @@ int main(int argc, char **argv)
         const struct CMUnitTest hello_tests[] = {
                 cmocka_unit_test(TestMocks),
                 cmocka_unit_test(TestMocksManyStreams),
+                cmocka_unit_test(TestMocksCat),
         };
         failed += cmocka_run_group_tests_name("Mocks tests", hello_tests, NULL, NULL);
     }

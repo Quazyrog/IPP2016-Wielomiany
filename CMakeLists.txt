@@ -68,7 +68,9 @@ if (CMOCKA_FOUND)
             src/unit_tests/tests_main.c
             src/unit_tests/mock_tricks.h
             src/unit_tests/poly_compose.c
-            src/unit_tests/poly_compose.h)
+            src/unit_tests/poly_compose.h
+            src/unit_tests/calc_compose.c
+            src/unit_tests/calc_compose.h)
 
     add_executable(unit_tests_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_CALC_ONLY} ${SOURCE_FILES_UNIT_TESTS})
     target_compile_definitions(unit_tests_poly PUBLIC -DUNIT_TESTING)
