@@ -1,11 +1,7 @@
 /** @file units_tests_poly_compose.c
  * Testy jednostkowe dla funkcji PolyCompose
  */
-#include <stdlib.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <setjmp.h>
-#include <cmocka.h>
+#include "tests_utils.h"
 #include "poly_compose.h"
 #include "../poly.h"
 

@@ -1,13 +1,8 @@
 /** @file cmocka_tests.c
  * Testy jednostkowe z wykorzystaniem biblioteki CMocka
  */
-#include <stdlib.h>
 #include <stdio.h>
-#include <stdarg.h>
-#include <stdbool.h>
 #include <string.h>
-#include <setjmp.h>
-#include <cmocka.h>
 #include "poly_compose.h"
 #include "tests_utils.h"
 

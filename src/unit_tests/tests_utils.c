@@ -1,13 +1,6 @@
 /** @file tests_utils.c
  * Funkcje potrzebne do testowania (na ogół obsługa atrap): implementacja
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <string.h>
-#include <setjmp.h>
-#include <cmocka.h>
 #include "tests_utils.h"
 
 

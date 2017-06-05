@@ -1,6 +1,15 @@
 /** @file tests_utils.h
- * Funkcje potrzebne do testowania (na ogół obsługa atrap)
+ * Funkcje potrzebne do testowania (na ogół obsługa atrap) + CMocka i inne potrzebne nagłówki.
  */
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <setjmp.h>
+#include <cmocka.h>
+
 #ifndef WIELOMIANY_TESTS_UTILS_H
 #define WIELOMIANY_TESTS_UTILS_H
 
@@ -48,6 +57,5 @@ void UnitTestingFeedInput(FILE *stream, const char *input, unsigned int length);
  * @return czy wyjście jest zgodne z oczekiwanym
  */
 bool UnitTestingCheckOutput(bool ignore_other);
-
 
 #endif //WIELOMIANY_TESTS_UTILS_H
