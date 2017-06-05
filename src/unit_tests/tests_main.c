@@ -8,6 +8,7 @@
 #include <string.h>
 #include <setjmp.h>
 #include <cmocka.h>
+#include "poly_compose.h"
 
 
 /**
@@ -233,6 +234,17 @@ int main(int argc, char **argv)
     }
 
     //Testy PolyCompose
+    const struct CMUnitTest compose_tests[] = {
+            cmocka_unit_test(TestPolyComposeZeroZero),
+            cmocka_unit_test(TestPolyComposeZeroConst),
+            cmocka_unit_test(TestPolyComposeConstZero),
+            cmocka_unit_test(TestPolyComposeConstConst),
+            cmocka_unit_test(TestPolyComposeLinZero),
+            cmocka_unit_test(TestPolyComposeLinConst),
+            cmocka_unit_test(TestPolyComposeLinLin),
+    };
+    failed += cmocka_run_group_tests_name("PolyCompose tests", compose_tests, NULL, NULL);
 
+    return failed;
 }
 
