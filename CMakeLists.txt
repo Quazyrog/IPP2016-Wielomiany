@@ -25,11 +25,11 @@ set(SOURCE_FILES_COMMON
         src/poly.h)
 
 set(SOURCE_FILES_POLY_TEST_ONLY
-        src/test_poly.c
-        src/test_poly_core.h
-        src/test_poly_core.c
-        src/test_poly.c
-        src/const_arr.h)
+        src/old_tests/test_poly.c
+        src/old_tests/test_poly_core.h
+        src/old_tests/test_poly_core.c
+        src/old_tests/test_poly.c
+        src/old_tests/const_arr.h)
 
 set(SOURCE_FILES_CALC_ONLY
         src/lexer.h
@@ -38,7 +38,7 @@ set(SOURCE_FILES_CALC_ONLY
         src/parser.c
         src/calculator_stack.h
         src/calculator_stack.c
-        src/calc_main.c)
+        src/main.c)
 
 # Wskazujemy plik wykonywalny.
 add_executable(calc_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_CALC_ONLY})
@@ -64,7 +64,13 @@ find_library(CMOCKA_FOUND cmocka)
 if (CMOCKA_FOUND)
     message("CMocka so found: " ${CMOCKA_FOUND})
     get_filename_component(CMOCKA_LIBRARY_DIR ${CMOCKA_FOUND} DIRECTORY)
-    add_executable(unit_tests_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_CALC_ONLY} src/cmocka_tests.c src/mock_tests_tricks.h)
+    set(SOURCE_FILES_UNIT_TESTS
+            src/unit_tests/tests_main.c
+            src/unit_tests/mock_tricks.h
+            src/unit_tests/poly_compose.c
+            src/unit_tests/poly_compose.h)
+
+    add_executable(unit_tests_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_CALC_ONLY} ${SOURCE_FILES_UNIT_TESTS})
     target_compile_definitions(unit_tests_poly PUBLIC -DUNIT_TESTING)
     target_link_libraries(unit_tests_poly -L${CMOCKA_LIBRARY_DIR} -lcmocka)
     add_test(NAME CMockaPolyUnitTests COMMAND unit_tests_poly)

@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <string.h>
 #include "poly.h"
-#include "mock_tests_tricks.h"
+#include "unit_tests/mock_tricks.h"
 
 /**
  * Żeby działało na overflow testach

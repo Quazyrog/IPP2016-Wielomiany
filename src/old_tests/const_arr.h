@@ -1,4 +1,4 @@
-#include "poly.h"
+#include "../poly.h"
 static const size_t conf_size = 10000;
 static const poly_coeff_t coef_arr1[] = {
     -588, 761,   -78,   977,  320,  29,    -398,  634,   -155, -238, -363, 427,

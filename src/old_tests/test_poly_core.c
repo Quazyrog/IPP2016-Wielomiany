@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "poly.h"
+#include "../poly.h"
 
 
 void TestPolynomialBuilding(void)

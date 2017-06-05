@@ -231,5 +231,8 @@ int main(int argc, char **argv)
         };
         failed += cmocka_run_group_tests_name("Mocks tests", hello_tests, NULL, NULL);
     }
+
+    //Testy PolyCompose
+
 }
 

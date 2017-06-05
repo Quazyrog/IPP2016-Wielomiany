@@ -1,6 +1,6 @@
 #include <assert.h>
 #include "test_poly_core.h"
-#include "poly.h"
+#include "../poly.h"
 #include "const_arr.h"
 #include <limits.h>
 #include <stdio.h>
