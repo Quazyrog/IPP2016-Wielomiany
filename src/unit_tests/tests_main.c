@@ -10,6 +10,8 @@
 #include <cmocka.h>
 #include "poly_compose.h"
 
+int tested_main(int argc, char **argv);
+
 
 /**
  * Przechowuje dane atrapy strumienia wyjściowego.
@@ -238,14 +240,9 @@ static bool CheckOutput(bool ignore_other)
 
     for (unsigned int i = 0; i < MockOutputsCounter; ++i) {
         MockOutputBuffer next = MockOutputs[i];
-        check = check && !next.overflow && memcmp(next.expected, next.outputBuffer, next.length) == 0;
-//        printf("\n{%s}{%s}\n", next.expected, next.outputBuffer);
-        next.expected = NULL;
-        next.length = 0;
+        check = check && !next.overflow && memcmp(next.expected, next.outputBuffer, (size_t)next.length) == 0;
+//        printf("\n{%s}{%s}=%i;;%i\n", next.expected, next.outputBuffer, memcmp(next.expected, next.outputBuffer, (size_t)next.length), (int)check);
         free(next.outputBuffer);
-        next.outputBuffer = NULL;
-        next.outputOffset = 0;
-        next.overflow = false;
     }
 
     free(MockOutputs);
@@ -373,6 +370,41 @@ static void TestMocksCat(void **state)
 }
 
 
+/**
+ * Testuje kompatybilność atrap z testowanym programem.
+ */
+void TestMocksCompat(void **state)
+{
+    (void)state;
+
+    const char *in = "1\nDEG\nPRINT\n";
+    FeedInput(stdin, in, strlen(in));
+    ExpectOutput(stdout, "0\n1\n");
+    tested_main(1, (char*[]){"./calc_poly"});
+    assert_true(CheckOutput(false));
+
+    in = "1\nPRINT\nPRINT\n";
+    FeedInput(stdin, in, strlen(in));
+    ExpectOutput(stdout, "0\n1\n");
+    tested_main(1, (char*[]){"./calc_poly"});
+    assert_false(CheckOutput(false));
+
+    in = "1\nDEG_BY\nPRINT\n";
+    FeedInput(stdin, in, strlen(in));
+    ExpectOutput(stdout, "1\n");
+    ExpectOutput(stderr, "ERROR 2 WRONG VARIABLE\n");
+    tested_main(1, (char*[]){"./calc_poly"});
+    assert_true(CheckOutput(false));
+
+    in = "1\nDEG_BY\nPRINT\n";
+    FeedInput(stdin, in, strlen(in));
+    ExpectOutput(stdout, "1\n");
+    ExpectOutput(stderr, "ERROR 1 WRONG VARIABLE\n");
+    tested_main(1, (char*[]){"./calc_poly"});
+    assert_false(CheckOutput(false));
+}
+
+
 int main(int argc, char **argv)
 {
     int failed = 0;
@@ -382,6 +414,7 @@ int main(int argc, char **argv)
                 cmocka_unit_test(TestMocks),
                 cmocka_unit_test(TestMocksManyStreams),
                 cmocka_unit_test(TestMocksCat),
+                cmocka_unit_test(TestMocksCompat),
         };
         failed += cmocka_run_group_tests_name("Mocks tests", hello_tests, NULL, NULL);
     }
