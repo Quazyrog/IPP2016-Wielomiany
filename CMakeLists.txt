@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.4)
 project(wielomiany C)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -24,7 +24,7 @@ set(SOURCE_FILES_COMMON
         src/poly.c
         src/poly.h)
 
-set(SOURCE_FILES_TEST_ONLY
+set(SOURCE_FILES_POLY_TEST_ONLY
         src/test_poly.c
         src/test_poly_core.h
         src/test_poly_core.c
@@ -42,7 +42,7 @@ set(SOURCE_FILES_CALC_ONLY
 
 # Wskazujemy plik wykonywalny.
 add_executable(calc_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_CALC_ONLY})
-add_executable(test_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_TEST_ONLY})
+add_executable(test_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_POLY_TEST_ONLY})
 
 # Dodajemy obsługę Doxygena: sprawdzamy, czy jest zainstalowany i jeśli tak to:
 find_package(Doxygen)
@@ -57,3 +57,17 @@ if (DOXYGEN_FOUND)
         COMMENT "Generating API documentation with Doxygen"
     )
 endif (DOXYGEN_FOUND)
+
+#Testy w CMocka
+enable_testing()
+find_library(CMOCKA_FOUND cmocka)
+if (CMOCKA_FOUND)
+    message("CMocka so found: " ${CMOCKA_FOUND})
+    get_filename_component(CMOCKA_LIBRARY_DIR ${CMOCKA_FOUND} DIRECTORY)
+    add_executable(unit_tests_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_CALC_ONLY} src/cmocka_tests.c src/mock_tests_tricks.h)
+    target_compile_definitions(unit_tests_poly PUBLIC -DUNIT_TESTING)
+    target_link_libraries(unit_tests_poly -L${CMOCKA_LIBRARY_DIR} -lcmocka)
+    add_test(NAME CMockaPolyUnitTests COMMAND unit_tests_poly)
+else()
+    message("Cannot find CMocka shared object file")
+endif (CMOCKA_FOUND)

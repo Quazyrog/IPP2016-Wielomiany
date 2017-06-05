@@ -6,6 +6,7 @@
 #include <string.h>
 #include <limits.h>
 #include "calculator_stack.h"
+#include "mock_tests_tricks.h"
 
 ///Rozmiar alokacji pojedynczego segmentu stosu (w liczbie wielomianów)
 #define CS_HUNK_SIZE 254
