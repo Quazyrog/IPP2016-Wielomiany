@@ -219,7 +219,7 @@ static inline Poly PolyFromCoeff(poly_coeff_t c)
  * Tworzy wielomian tożsamościowo równy zeru.
  * @return wielomian
  */
-static inline Poly PolyZero()
+static inline Poly PolyZero(void)
 {
     return PolyFromCoeff(0);
 }
