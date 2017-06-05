@@ -1,4 +1,4 @@
-/** @file units_tests_poly_compose.c
+/** @file poly_compose.c
  * Testy jednostkowe dla funkcji PolyCompose
  */
 #include "tests_utils.h"

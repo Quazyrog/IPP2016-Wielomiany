@@ -13,6 +13,8 @@
 #ifndef WIELOMIANY_TESTS_UTILS_H
 #define WIELOMIANY_TESTS_UTILS_H
 
+int tested_main(int argc, char **argv);
+
 /**
  * Atrapa funkcji fprintf.
  * Przy pomocy vsnprintf wypisuje dane do bufora. Jeżeli dany strumień nie ma przydzielonego bufora, to ustawiana jest

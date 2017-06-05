@@ -5,9 +5,7 @@
 #include <string.h>
 #include "poly_compose.h"
 #include "tests_utils.h"
-
-int tested_main(int argc, char **argv);
-
+#include "calc_compose.h"
 
 
 /**
@@ -180,6 +178,20 @@ int main(int argc, char **argv)
             cmocka_unit_test(TestPolyComposeLinLin),
     };
     failed += cmocka_run_group_tests_name("PolyCompose tests", compose_tests, NULL, NULL);
+
+    //Testy programu
+    const struct CMUnitTest program_tests[] = {
+            cmocka_unit_test(TestCalcComposeNoParam),
+            cmocka_unit_test(TestCalcComposeZero),
+            cmocka_unit_test(TestCalcComposeUMax),
+            cmocka_unit_test(TestCalcComposeNegative),
+            cmocka_unit_test(TestCalcComposeOverflow),
+            cmocka_unit_test(TestCalcComposeOooveeerflooow),
+            cmocka_unit_test(TestCalcComposeCapybara),
+            cmocka_unit_test(TestCalcCompose44Capybaras),
+//            cmocka_unit_test(TestCalcComposeExample),
+    };
+    failed += cmocka_run_group_tests_name("Program tests", program_tests, NULL, NULL);
 
     return failed;
 }
