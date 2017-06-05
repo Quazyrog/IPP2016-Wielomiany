@@ -9,6 +9,23 @@
 #ifndef WIELOMIANY_MOCK_TESTS_TRICKS_H
 #define WIELOMIANY_MOCK_TESTS_TRICKS_H
 
+/**
+ * Czy mają być robione testy pamięci z użyciem CMocka?
+ */
+#define DO_MEMORY_TESTS
+#ifdef DO_MEMORY_TESTS
+
+#define malloc(size) _test_malloc(size, __FILE__, __LINE__)
+#define realloc(ptr, size) _test_realloc(ptr, size, __FILE__, __LINE__)
+#define calloc(num, size) _test_calloc(num, size, __FILE__, __LINE__)
+#define free(ptr) _test_free(ptr, __FILE__, __LINE__)
+
+extern void* _test_malloc(const size_t size, const char* file, const int line);
+extern void* _test_realloc(void *ptr, const size_t size, const char* file, const int line);
+extern void* _test_calloc(const size_t num, const size_t size, const char* file, const int line);
+extern void* _test_free(void *ptr, const char* file, const int line);
+#endif
+
 #define main tested_main
 #define fprintf mock_fprintf
 #define printf(...) mock_fprintf(stdout, __VA_ARGS__)
