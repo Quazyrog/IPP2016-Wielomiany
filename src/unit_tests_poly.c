@@ -293,7 +293,7 @@ static void TestPolyComposeZeroConst(void **state)
 
     Poly p = PolyZero();
     Poly expect = PolyZero();
-    Poly x[] = {PolyZero()};
+    Poly x[] = {PolyFromCoeff(42)};
 
     Poly got = PolyCompose(&p, 1, x);
     assert_true(PolyIsEq(&got, &expect));
