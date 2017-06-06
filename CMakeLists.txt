@@ -25,11 +25,11 @@ set(SOURCE_FILES_COMMON
         src/poly.h)
 
 set(SOURCE_FILES_POLY_TEST_ONLY
-        src/old_tests/test_poly.c
-        src/old_tests/test_poly_core.h
-        src/old_tests/test_poly_core.c
-        src/old_tests/test_poly.c
-        src/old_tests/const_arr.h)
+        src/test_poly.c
+        src/test_poly_core.h
+        src/test_poly_core.c
+        src/test_poly.c
+        src/const_arr.h)
 
 set(SOURCE_FILES_CALC_ONLY
         src/lexer.h
@@ -65,12 +65,9 @@ if (CMOCKA_FOUND)
     message("CMocka so found: " ${CMOCKA_FOUND})
     get_filename_component(CMOCKA_LIBRARY_DIR ${CMOCKA_FOUND} DIRECTORY)
     set(SOURCE_FILES_UNIT_TESTS
-            src/unit_tests/tests_main.c
-            src/unit_tests/mock_tricks.h
-            src/unit_tests/poly_compose.c
-            src/unit_tests/poly_compose.h
-            src/unit_tests/calc_compose.c
-            src/unit_tests/calc_compose.h src/unit_tests/tests_utils.c src/unit_tests/tests_utils.h)
+            src/unit_tests_poly.c
+            src/mock_tricks.h
+            )
 
     add_executable(unit_tests_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_CALC_ONLY} ${SOURCE_FILES_UNIT_TESTS})
     target_compile_definitions(unit_tests_poly PUBLIC -DUNIT_TESTING)

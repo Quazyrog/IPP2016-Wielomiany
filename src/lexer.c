@@ -4,7 +4,7 @@
 #include "lexer.h"
 #include <ctype.h>
 #include <memory.h>
-#include "unit_tests/mock_tricks.h"
+#include "mock_tricks.h"
 
 
 /**

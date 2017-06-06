@@ -2,7 +2,7 @@
 #include <errno.h>
 #include <string.h>
 #include "parser.h"
-#include "unit_tests/mock_tricks.h"
+#include "mock_tricks.h"
 
 #define EXITCODE_NO_ERROR 0
 #define EXITCODE_INVALID_INVOCATION 1

@@ -19,7 +19,7 @@
 #include "poly.h"
 #include "lexer.h"
 #include "calculator_stack.h"
-#include "unit_tests/mock_tricks.h"
+#include "mock_tricks.h"
 
 
 /**
