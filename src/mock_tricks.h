@@ -30,8 +30,13 @@ extern void* _test_free(void *ptr, const char* file, const int line);
 #define fprintf mock_fprintf
 #define printf(...) mock_fprintf(stdout, __VA_ARGS__)
 #define fputc mock_fputc
+#define scanf(format, ...) mock_scanf(format"%n", ##__VA_ARGS__, &read_char_count)
+#define exit(code) fail_msg("Exited with code %i", code)
 #define fgetc mock_fgetc
 
+extern int ReadCharCount;
+extern void fail_msg(const char *msg, ...);
+int mock_scanf(const char *format, ...);
 int mock_fprintf(FILE *stream, const char *format, ...);
 int mock_fgetc(FILE *stream);
 int mock_fputc(int c, FILE *stream);

@@ -83,6 +83,9 @@ static unsigned int MockInputsAllocated = 0;
 ///Czy wczytano coś z innego strumienia?
 static bool WrongOutputTouched = false;
 
+///Liczba znaków przeczytana przez scanf (magicznie dodawana na końcu każdego scanfa przez makro z mock_tricks.h)
+int ReadCharCount;
+
 
 /**
  * Atrapa funkcji fprintf.
@@ -180,6 +183,45 @@ int mock_fgetc(FILE *stream)
     if (in->pos == in->end)
         return EOF;
     return *(in->pos++);
+}
+
+
+/**
+ * Atrapa <c>scanf</c>.
+ * Wymaga, aby odpowiednie makro samo dopisało do formatu <c>%n</c> oraz dodało jako ostatni argument
+ * <c>ReadCharCount</c>.
+ * @param format format z dopisanym na końcu <c>%n</c>
+ * @param ... lista parametrów z dołożonym na końcu <c>ReadCharCount</c>
+ * @return liczbę przeczytanych rzeczy
+ */
+int mock_scanf(const char *format, ...)
+{
+    MockInputBuffer *in = NULL;
+    for (unsigned int i = 0; i < MockInputsCounter; ++i) {
+        if (MockInputs[i].stream == stdin) {
+            in = MockInputs + i;
+            break;
+        }
+    }
+
+    va_list args;
+    int ret;
+    assert_true(in != NULL);
+    va_start(args, format);
+    ret = vsscanf(in->pos, format, args);
+    va_end(args);
+
+    if (ret < 0) {
+        in->pos = in->end;
+    } else {
+        assert_true(ReadCharCount >= 0);
+        in->pos += ReadCharCount;
+        if (in->pos > in->end) {
+            //Ale jak tak, to chyba coś jest źle...
+            in->pos = in->end;
+        }
+    }
+    return ret;
 }
 
 
