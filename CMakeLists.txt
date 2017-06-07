@@ -69,9 +69,13 @@ if (CMOCKA_FOUND)
             src/mock_tricks.h
             )
 
+
     add_executable(unit_tests_poly ${SOURCE_FILES_COMMON} ${SOURCE_FILES_CALC_ONLY} ${SOURCE_FILES_UNIT_TESTS})
-    target_compile_definitions(unit_tests_poly PUBLIC -DUNIT_TESTING)
-    target_link_libraries(unit_tests_poly -L${CMOCKA_LIBRARY_DIR} -lcmocka)
+    set_target_properties(
+            unit_tests_poly
+            PROPERTIES
+            COMPILE_DEFINITIONS UNIT_TESTING=1)
+    target_link_libraries(unit_tests_poly ${CMOCKA_FOUND})
     add_test(NAME CMockaPolyUnitTests COMMAND unit_tests_poly)
 else()
     message("Cannot find CMocka shared object file")
